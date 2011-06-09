@@ -229,12 +229,12 @@ void FAST_FUNC xclose(int fd)
 }
 
 // Die with an error message if we can't lseek to the right spot.
-off_t FAST_FUNC xlseek(int fd, off_t offset, int whence)
+off64_t FAST_FUNC xlseek(int fd, off64_t offset, int whence)
 {
-	off_t off = lseek(fd, offset, whence);
+	off64_t off = lseek64(fd, offset, whence);
 	if (off == (off_t)-1) {
 		if (whence == SEEK_SET)
-			bb_perror_msg_and_die("lseek(%"OFF_FMT"u)", offset);
+			bb_perror_msg_and_die("lseek(%llu)", offset);
 		bb_perror_msg_and_die("lseek");
 	}
 	return off;
