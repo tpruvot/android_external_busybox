@@ -1482,7 +1482,7 @@ static void remember_in_history(char *str)
 	/* i <= state->max_history */
 	state->cur_history = i;
 	state->cnt_history = i;
-# if MAX_HISTORY > 0 && ENABLE_FEATURE_EDITING_SAVEHISTORY
+# if ENABLE_FEATURE_EDITING_SAVEHISTORY
 	if ((state->flags & SAVE_HISTORY) && state->hist_file)
 		save_history(str);
 # endif
