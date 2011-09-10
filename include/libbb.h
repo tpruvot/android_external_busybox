@@ -45,6 +45,11 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
+/* There are two incompatible basename's, let not use them! */
+/* See the dirname/basename man page for details */
+#include <libgen.h> /* dirname,basename */
+#undef basename
+#define basename dont_use_basename
 #include <sys/poll.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -146,12 +151,6 @@ int vdprintf(int d, const char *format, va_list ap);
 #endif
 /* klogctl is in libc's klog.h, but we cheat and not #include that */
 int klogctl(int type, char *b, int len);
-/* This is declared here rather than #including <libgen.h> in order to avoid
- * confusing the two versions of basename.  See the dirname/basename man page
- * for details. */
-#if !defined __FreeBSD__ && !defined __BIONIC__
-char *dirname(char *path);
-#endif
 #ifndef PATH_MAX
 # define PATH_MAX 256
 #endif
