@@ -24,7 +24,7 @@
  */
 
 
-//usage:#if !ENABLE_MODPROBE_SMALL
+//usage:#if !ENABLE_MODPROBE_SMALL && !ENABLE_FEATURE_MODPROBE_SMALL_OPTIONS_ON_CMDLINE
 //usage:#define modprobe_notes_usage
 //usage:	"modprobe can (un)load a stack of modules, passing each module options (when\n"
 //usage:	"loading). modprobe uses a configuration file to determine what option(s) to\n"
