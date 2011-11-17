@@ -1,12 +1,14 @@
 LOCAL_PATH := $(call my-dir)
 
-# Bionic Branches Difference (CM/AOSP/ICS)
+
+# Bionic Branches Switches (CM7/AOSP/ICS)
 HAVE_CLEARSILVER := true
 BIONIC_ICS := false
 
+
 # Make a static library for clearsilver's regex.
 # This prevents multiple symbol definition error....
-ifneq ($(HAVE_CLEARSILVER),false)
+ifeq ($(HAVE_CLEARSILVER),true)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := ../clearsilver/util/regex/regex.c
 LOCAL_MODULE := libclearsilverregex
@@ -76,7 +78,7 @@ BUSYBOX_C_INCLUDES = \
 	bionic/libm \
 	libc/kernel/common
 
-ifneq ($(HAVE_CLEARSILVER),false)
+ifeq ($(HAVE_CLEARSILVER),true)
 BUSYBOX_C_INCLUDES += \
 	external/clearsilver \
 	external/clearsilver/util/regex
@@ -114,7 +116,10 @@ LOCAL_CFLAGS += \
   -Dgenerate_uuid=busybox_generate_uuid
 LOCAL_MODULE := libbusybox
 LOCAL_MODULE_TAGS := eng
-LOCAL_STATIC_LIBRARIES := libclearsilverregex libcutils libc libm
+LOCAL_STATIC_LIBRARIES := libcutils libc libm
+ifeq ($(HAVE_CLEARSILVER),true)
+LOCAL_STATIC_LIBRARIES += libclearsilverregex
+endif
 $(LOCAL_MODULE): busybox_prepare
 include $(BUILD_STATIC_LIBRARY)
 
@@ -134,7 +139,7 @@ LOCAL_MODULE := busybox
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
 LOCAL_SHARED_LIBRARIES := libm
-ifneq ($(HAVE_CLEARSILVER),false)
+ifeq ($(HAVE_CLEARSILVER),true)
 LOCAL_STATIC_LIBRARIES := libclearsilverregex
 endif
 $(LOCAL_MODULE): busybox_prepare
@@ -178,9 +183,8 @@ LOCAL_CFLAGS += \
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_MODULE := static_busybox
 LOCAL_MODULE_TAGS := optional
-LOCAL_REQUIRED_MODULES := libm
 LOCAL_STATIC_LIBRARIES := libcutils libc libm
-ifneq ($(HAVE_CLEARSILVER),false)
+ifeq ($(HAVE_CLEARSILVER),true)
 LOCAL_STATIC_LIBRARIES += libclearsilverregex
 endif
 LOCAL_MODULE_CLASS := UTILITY_EXECUTABLES
