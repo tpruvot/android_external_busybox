@@ -124,13 +124,16 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 BUSYBOX_CONFIG:=full
 BUSYBOX_SUFFIX:=bionic
-LOCAL_SRC_FILES := $(BUSYBOX_SRC_FILES) android/libc/__set_errno.c
+LOCAL_SRC_FILES := $(BUSYBOX_SRC_FILES)
+ifeq ($(BIONIC_ICS),true)
+LOCAL_SRC_FILES += android/libc/__set_errno.c
+endif
 LOCAL_C_INCLUDES := $(BUSYBOX_C_INCLUDES)
 LOCAL_CFLAGS := $(BUSYBOX_CFLAGS)
 LOCAL_MODULE := busybox
 LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
-LOCAL_REQUIRED_MODULES := libm
+LOCAL_SHARED_LIBRARIES := libm
 ifneq ($(HAVE_CLEARSILVER),false)
 LOCAL_STATIC_LIBRARIES := libclearsilverregex
 endif
@@ -176,10 +179,9 @@ LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_MODULE := static_busybox
 LOCAL_MODULE_TAGS := optional
 LOCAL_REQUIRED_MODULES := libm
-ifneq ($(HAVE_CLEARSILVER),false)
-LOCAL_STATIC_LIBRARIES := libclearsilverregex libcutils libc libm
-else
 LOCAL_STATIC_LIBRARIES := libcutils libc libm
+ifneq ($(HAVE_CLEARSILVER),false)
+LOCAL_STATIC_LIBRARIES += libclearsilverregex
 endif
 LOCAL_MODULE_CLASS := UTILITY_EXECUTABLES
 LOCAL_MODULE_PATH := $(PRODUCT_OUT)/utilities
