@@ -700,7 +700,7 @@ static const char bbconfig_config[] ALIGN1 =
 "CONFIG_NETSTAT=y\n"
 "CONFIG_FEATURE_NETSTAT_WIDE=y\n"
 "CONFIG_FEATURE_NETSTAT_PRG=y\n"
-"CONFIG_NSLOOKUP=y\n"
+"# CONFIG_NSLOOKUP is not set\n"
 "CONFIG_NTPD=y\n"
 "# CONFIG_FEATURE_NTPD_SERVER is not set\n"
 "# CONFIG_PSCAN is not set\n"
