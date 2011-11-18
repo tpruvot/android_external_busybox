@@ -28,7 +28,9 @@
 #define _GNU_SOURCE
 
 #include "cs_config.h"
-#include "osdep.h"
+
+#define os_random random
+#define HAVE_PTHREAD 1
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
