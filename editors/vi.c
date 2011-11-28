@@ -3069,8 +3069,9 @@ static void do_cmd(int c)
 	int cnt, i, j;
 	int c1;
 
-	c1 = cnt = 0;
-	p = q = save_dot = NULL;
+//	c1 = c; // quiet the compiler
+//	cnt = yf = 0; // quiet the compiler
+//	p = q = save_dot = buf; // quiet the compiler
 	memset(buf, '\0', sizeof(buf));
 
 	show_status_line();
@@ -3316,19 +3317,12 @@ static void do_cmd(int c)
 #endif /* FEATURE_VI_YANKMARK */
 	case '$':			// $- goto end of line
 	case KEYCODE_END:		// Cursor Key End
-		if (--cmdcnt > 0) {
-			dot_next();
-			do_cmd(c);
-		}
-		dot = end_line(dot);
-/*
 		for (;;) {
 			dot = end_line(dot);
 			if (--cmdcnt > 0)
 				break;
 			dot_next();
 		}
-*/
 		break;
 	case '%':			// %- find matching char of pair () [] {}
 		for (q = dot; q < end && *q != '\n'; q++) {
