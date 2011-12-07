@@ -523,15 +523,17 @@ static struct init_action *mark_terminated(pid_t pid)
 	struct init_action *a;
 
 	if (pid > 0) {
+		update_utmp(pid, DEAD_PROCESS,
+				/*tty_name:*/ NULL,
+				/*username:*/ NULL,
+				/*hostname:*/ NULL
+		);
 		for (a = init_action_list; a; a = a->next) {
 			if (a->pid == pid) {
 				a->pid = 0;
 				return a;
 			}
 		}
-		update_utmp(pid, DEAD_PROCESS, /*tty_name:*/ NULL,
-				/*username:*/ NULL,
-				/*hostname:*/ NULL);
 	}
 	return NULL;
 }
@@ -596,7 +598,7 @@ static void new_init_action(uint8_t action_type, const char *command, const char
 	 */
 	nextp = &init_action_list;
 	while ((a = *nextp) != NULL) {
-		/* Don't enter action if it's already in the list,
+		/* Don't enter action if it's already in the list.
 		 * This prevents losing running RESPAWNs.
 		 */
 		if (strcmp(a->command, command) == 0
@@ -608,14 +610,15 @@ static void new_init_action(uint8_t action_type, const char *command, const char
 			while (*nextp != NULL)
 				nextp = &(*nextp)->next;
 			a->next = NULL;
-			break;
+			goto append;
 		}
 		nextp = &a->next;
 	}
 
-	if (!a)
-		a = xzalloc(sizeof(*a));
+	a = xzalloc(sizeof(*a));
+
 	/* Append to the end of the list */
+ append:
 	*nextp = a;
 	a->action_type = action_type;
 	safe_strncpy(a->command, command, sizeof(a->command));
