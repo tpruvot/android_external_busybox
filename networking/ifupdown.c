@@ -1311,9 +1311,9 @@ int ifupdown_main(int argc UNUSED_PARAM, char **argv)
 			llist_t *state_list = read_iface_state();
 			llist_t *iface_state = find_iface_state(state_list, iface);
 
-			if (cmds == iface_up) {
-				char * const newiface = xasprintf("%s=%s", iface, liface);
-				if (iface_state == NULL) {
+			if (cmds == iface_up && !any_failures) {
+				char *newiface = xasprintf("%s=%s", iface, liface);
+				if (!iface_state) {
 					llist_add_to_end(&state_list, newiface);
 				} else {
 					free(iface_state->data);
