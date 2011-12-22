@@ -21,12 +21,14 @@ BUSYBOX_CONFIG := minimal full
 $(BUSYBOX_CONFIG):
 	@echo GENERATE INCLUDES FOR BUSYBOX $@
 	@cd $(LOCAL_PATH) && make clean
+	@cd $(LOCAL_PATH) && git clean -f -- ./include-$@/
 	cp $(LOCAL_PATH)/.config-$@ $(LOCAL_PATH)/.config
 	cd $(LOCAL_PATH) && make prepare
 	@#cp $(LOCAL_PATH)/.config $(LOCAL_PATH)/.config-$@
 	@mkdir -p $(LOCAL_PATH)/include-$@
 	cp $(LOCAL_PATH)/include/*.h $(LOCAL_PATH)/include-$@/
 	@rm $(LOCAL_PATH)/include/usage_compressed.h
+	@rm $(LOCAL_PATH)/include/autoconf.h
 	@rm -f $(LOCAL_PATH)/.config-old
 
 busybox_prepare: $(BUSYBOX_CONFIG)
