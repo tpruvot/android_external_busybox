@@ -183,6 +183,7 @@ int klogctl(int type, char *b, int len);
 # define fputs(s, stream) fputs_unlocked(s, stream)
 #endif
 
+
 /* Make all declarations hidden (-fvisibility flag only affects definitions) */
 /* (don't include system headers after this until corresponding pop!) */
 PUSH_AND_SET_FUNCTION_VISIBILITY_TO_HIDDEN

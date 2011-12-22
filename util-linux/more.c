@@ -37,9 +37,11 @@ struct globals {
 #define new_settings     (G.new_settings    )
 #define cin_fileno       (G.cin_fileno      )
 
-#define setTermSettings(fd, argp) do { \
-		if (ENABLE_FEATURE_USE_TERMIOS) tcsetattr(fd, TCSANOW, argp); \
-	} while (0)
+#define setTermSettings(fd, argp) \
+do { \
+	if (ENABLE_FEATURE_USE_TERMIOS) \
+		tcsetattr(fd, TCSANOW, argp); \
+} while (0)
 #define getTermSettings(fd, argp) tcgetattr(fd, argp)
 
 static void gotsig(int sig UNUSED_PARAM)
