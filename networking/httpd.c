@@ -1265,18 +1265,21 @@ static void setenv1(const char *name, const char *value)
  *
  * Parameters:
  * const char *url              The requested URL (with leading /).
+ * const char *orig_uri         The original URI before rewriting (if any)
  * int post_len                 Length of the POST body.
  * const char *cookie           For set HTTP_COOKIE.
  * const char *content_type     For set CONTENT_TYPE.
  */
 static void send_cgi_and_exit(
 		const char *url,
+		const char *orig_uri,
 		const char *request,
 		int post_len,
 		const char *cookie,
 		const char *content_type) NORETURN;
 static void send_cgi_and_exit(
 		const char *url,
+		const char *orig_uri,
 		const char *request,
 		int post_len,
 		const char *cookie,
@@ -1284,7 +1287,7 @@ static void send_cgi_and_exit(
 {
 	struct fd_pair fromCgi;  /* CGI -> httpd pipe */
 	struct fd_pair toCgi;    /* httpd -> CGI pipe */
-	char *script;
+	char *script, *last_slash;
 	int pid;
 
 	/* Make a copy. NB: caller guarantees:
@@ -1298,22 +1301,25 @@ static void send_cgi_and_exit(
 	 */
 
 	/* Check for [dirs/]script.cgi/PATH_INFO */
-	script = (char*)url;
+	last_slash = script = (char*)url;
 	while ((script = strchr(script + 1, '/')) != NULL) {
+		int dir;
 		*script = '\0';
-		if (!is_directory(url + 1, 1, NULL)) {
+		dir = is_directory(url + 1, /*followlinks:*/ 1);
+		*script = '/';
+		if (!dir) {
 			/* not directory, found script.cgi/PATH_INFO */
-			*script = '/';
 			break;
 		}
-		*script = '/'; /* is directory, find next '/' */
+		/* is directory, find next '/' */
+		last_slash = script;
 	}
 	setenv1("PATH_INFO", script);   /* set to /PATH_INFO or "" */
 	setenv1("REQUEST_METHOD", request);
 	if (g_query) {
-		putenv(xasprintf("%s=%s?%s", "REQUEST_URI", url, g_query));
+		putenv(xasprintf("%s=%s?%s", "REQUEST_URI", orig_uri, g_query));
 	} else {
-		setenv1("REQUEST_URI", url);
+		setenv1("REQUEST_URI", orig_uri);
 	}
 	if (script != NULL)
 		*script = '\0';         /* cut off /PATH_INFO */
@@ -1387,7 +1393,7 @@ static void send_cgi_and_exit(
 		log_and_exit();
 	}
 
-	if (!pid) {
+	if (pid == 0) {
 		/* Child process */
 		char *argv[3];
 
@@ -1403,7 +1409,7 @@ static void send_cgi_and_exit(
 		/* dup2(1, 2); */
 
 		/* Chdiring to script's dir */
-		script = strrchr(url, '/');
+		script = last_slash;
 		if (script != url) { /* paranoia */
 			*script = '\0';
 			if (chdir(url + 1) != 0) {
@@ -1992,7 +1998,7 @@ static void handle_incoming_and_exit(const len_and_sockaddr *fromAddr)
 	/* NB: urlcopy ptr is never changed after this */
 
 	/* Extract url args if present */
-	g_query = NULL;
+	/* g_query = NULL; - already is */
 	tptr = strchr(urlcopy, '?');
 	if (tptr) {
 		*tptr++ = '\0';
@@ -2045,7 +2051,7 @@ static void handle_incoming_and_exit(const len_and_sockaddr *fromAddr)
 
 	/* If URL is a directory, add '/' */
 	if (urlp[-1] != '/') {
-		if (is_directory(urlcopy + 1, 1, NULL)) {
+		if (is_directory(urlcopy + 1, /*followlinks:*/ 1)) {
 			found_moved_temporarily = urlcopy;
 		}
 	}
@@ -2059,7 +2065,7 @@ static void handle_incoming_and_exit(const len_and_sockaddr *fromAddr)
 	while (ip_allowed && (tptr = strchr(tptr + 1, '/')) != NULL) {
 		/* have path1/path2 */
 		*tptr = '\0';
-		if (is_directory(urlcopy + 1, 1, NULL)) {
+		if (is_directory(urlcopy + 1, /*followlinks:*/ 1)) {
 			/* may have subdir config */
 			parse_conf(urlcopy + 1, SUBDIR_PARSE);
 			ip_allowed = checkPermIP();
@@ -2245,12 +2251,20 @@ static void handle_incoming_and_exit(const len_and_sockaddr *fromAddr)
 			/* protect listing "cgi-bin/" */
 			send_headers_and_exit(HTTP_FORBIDDEN);
 		}
-		send_cgi_and_exit(urlcopy, prequest, length, cookie, content_type);
+		send_cgi_and_exit(urlcopy, urlcopy, prequest, length, cookie, content_type);
 	}
 #endif
 
-	if (urlp[-1] == '/')
+	if (urlp[-1] == '/') {
+		/* When index_page string is appended to <dir>/ URL, it overwrites
+		 * the query string. If we fall back to call /cgi-bin/index.cgi,
+		 * query string would be lost and not available to the CGI.
+		 * Work around it by making a deep copy.
+		 */
+		if (ENABLE_FEATURE_HTTPD_CGI)
+			g_query = xstrdup(g_query); /* ok for NULL too */
 		strcpy(urlp, index_page);
+	}
 	if (stat(tptr, &sb) == 0) {
 #if ENABLE_FEATURE_HTTPD_CONFIG_WITH_SCRIPT_INTERPR
 		char *suffix = strrchr(tptr, '.');
@@ -2258,7 +2272,7 @@ static void handle_incoming_and_exit(const len_and_sockaddr *fromAddr)
 			Htaccess *cur;
 			for (cur = script_i; cur; cur = cur->next) {
 				if (strcmp(cur->before_colon + 1, suffix) == 0) {
-					send_cgi_and_exit(urlcopy, prequest, length, cookie, content_type);
+					send_cgi_and_exit(urlcopy, urlcopy, prequest, length, cookie, content_type);
 				}
 			}
 		}
@@ -2271,9 +2285,8 @@ static void handle_incoming_and_exit(const len_and_sockaddr *fromAddr)
 		/* It's a dir URL and there is no index.html
 		 * Try cgi-bin/index.cgi */
 		if (access("/cgi-bin/index.cgi"+1, X_OK) == 0) {
-			urlp[0] = '\0';
-			g_query = urlcopy;
-			send_cgi_and_exit("/cgi-bin/index.cgi", prequest, length, cookie, content_type);
+			urlp[0] = '\0'; /* remove index_page */
+			send_cgi_and_exit("/cgi-bin/index.cgi", urlcopy, prequest, length, cookie, content_type);
 		}
 	}
 	/* else fall through to send_file, it errors out if open fails: */
