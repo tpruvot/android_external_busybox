@@ -1,7 +1,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <cutils/android_reboot.h>
+#include <sys/reboot.h>
 #include <unistd.h>
 
 int reboot_main(int argc, char *argv[])
@@ -9,7 +9,6 @@ int reboot_main(int argc, char *argv[])
     int ret;
     int nosync = 0;
     int poweroff = 0;
-    int flags = 0;
 
     opterr = 0;
     do {
@@ -39,16 +38,19 @@ int reboot_main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if(nosync)
-        /* also set NO_REMOUNT_RO as remount ro includes an implicit sync */
-        flags = ANDROID_RB_FLAG_NO_SYNC | ANDROID_RB_FLAG_NO_REMOUNT_RO;
+    if(!nosync)
+        sync();
 
     if(poweroff)
-        ret = android_reboot(ANDROID_RB_POWEROFF, flags, 0);
-    else if(argc > optind)
-        ret = android_reboot(ANDROID_RB_RESTART2, flags, argv[optind]);
-    else
-        ret = android_reboot(ANDROID_RB_RESTART, flags, 0);
+        ret = __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+    else if(argc > optind) {
+#ifdef RECOVERY_PRE_COMMAND
+        if (!strncmp(argv[optind],"recovery",8))
+            system( RECOVERY_PRE_COMMAND );
+#endif
+        ret = __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, argv[optind]);
+    } else
+        ret = reboot(RB_AUTOBOOT);
     if(ret < 0) {
         perror("reboot");
         exit(EXIT_FAILURE);
