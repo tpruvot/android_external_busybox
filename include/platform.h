@@ -341,8 +341,8 @@ typedef unsigned smalluint;
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
-# define endpwent() ((void)0)
-# define endgrent() ((void)0)
+//# define endpwent() ((void)0)
+//# define endgrent() ((void)0)
 #endif
 
 

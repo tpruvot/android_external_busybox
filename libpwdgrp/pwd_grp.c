@@ -762,7 +762,9 @@ static const unsigned char pw_off[] ALIGN1 = {
 	offsetof(struct passwd, pw_passwd),     /* 1 */
 	offsetof(struct passwd, pw_uid),        /* 2 - not a char ptr */
 	offsetof(struct passwd, pw_gid),        /* 3 - not a char ptr */
+#ifndef __BIONIC__
 	offsetof(struct passwd, pw_gecos),      /* 4 */
+#endif
 	offsetof(struct passwd, pw_dir),        /* 5 */
 	offsetof(struct passwd, pw_shell)       /* 6 */
 };
