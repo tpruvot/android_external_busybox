@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 
 # Bionic Branches Switches (CM7/AOSP/ICS)
-BIONIC_ICS := true
+BIONIC_ICS := false
 
 
 # Make a static library for regex.
