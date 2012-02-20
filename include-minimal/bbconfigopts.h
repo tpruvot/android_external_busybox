@@ -399,6 +399,7 @@ static const char bbconfig_config[] ALIGN1 =
 "# CONFIG_FEATURE_PASSWD_WEAK_CHECK is not set\n"
 "# CONFIG_CRYPTPW is not set\n"
 "# CONFIG_CHPASSWD is not set\n"
+"CONFIG_FEATURE_DEFAULT_PASSWD_ALGO=\"\"\n"
 "# CONFIG_SU is not set\n"
 "# CONFIG_FEATURE_SU_SYSLOG is not set\n"
 "# CONFIG_FEATURE_SU_CHECKS_SHELLS is not set\n"

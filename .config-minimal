@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.0-ics
-# Thu Dec 22 19:40:37 2011
+# Mon Feb 20 21:49:40 2012
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -469,6 +469,7 @@ CONFIG_LAST_SYSTEM_ID=0
 # CONFIG_FEATURE_PASSWD_WEAK_CHECK is not set
 # CONFIG_CRYPTPW is not set
 # CONFIG_CHPASSWD is not set
+CONFIG_FEATURE_DEFAULT_PASSWD_ALGO=""
 # CONFIG_SU is not set
 # CONFIG_FEATURE_SU_SYSLOG is not set
 # CONFIG_FEATURE_SU_CHECKS_SHELLS is not set

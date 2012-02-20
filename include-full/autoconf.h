@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * Busybox version: 1.20.0-ics
  */
-#define AUTOCONF_TIMESTAMP "2011-12-22 19:35 +0100"
+#define AUTOCONF_TIMESTAMP "2012-02-20 21:48 +0100"
 
 #define CONFIG_HAVE_DOT_CONFIG 1
 #define ENABLE_HAVE_DOT_CONFIG 1
@@ -1640,6 +1640,10 @@
 #define ENABLE_CHPASSWD 0
 #define IF_CHPASSWD(...)
 #define IF_NOT_CHPASSWD(...) __VA_ARGS__
+#define CONFIG_FEATURE_DEFAULT_PASSWD_ALGO ""
+#define ENABLE_FEATURE_DEFAULT_PASSWD_ALGO 1
+#define IF_FEATURE_DEFAULT_PASSWD_ALGO(...) __VA_ARGS__
+#define IF_NOT_FEATURE_DEFAULT_PASSWD_ALGO(...)
 #undef CONFIG_SU
 #define ENABLE_SU 0
 #define IF_SU(...)
@@ -2880,10 +2884,10 @@
 #define ENABLE_FEATURE_NETSTAT_PRG 1
 #define IF_FEATURE_NETSTAT_PRG(...) __VA_ARGS__
 #define IF_NOT_FEATURE_NETSTAT_PRG(...)
-#undef CONFIG_NSLOOKUP
-#define ENABLE_NSLOOKUP 0
-#define IF_NSLOOKUP(...)
-#define IF_NOT_NSLOOKUP(...) __VA_ARGS__
+#define CONFIG_NSLOOKUP 1
+#define ENABLE_NSLOOKUP 1
+#define IF_NSLOOKUP(...) __VA_ARGS__
+#define IF_NOT_NSLOOKUP(...)
 #define CONFIG_NTPD 1
 #define ENABLE_NTPD 1
 #define IF_NTPD(...) __VA_ARGS__
