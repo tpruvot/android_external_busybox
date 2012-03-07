@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * Busybox version: 1.20.0-ics
  */
-#define AUTOCONF_TIMESTAMP "2012-02-20 21:49 +0100"
+#define AUTOCONF_TIMESTAMP "2012-03-07 16:46 +0100"
 
 #define CONFIG_HAVE_DOT_CONFIG 1
 #define ENABLE_HAVE_DOT_CONFIG 1
@@ -204,10 +204,22 @@
 #define ENABLE_CROSS_COMPILER_PREFIX 1
 #define IF_CROSS_COMPILER_PREFIX(...) __VA_ARGS__
 #define IF_NOT_CROSS_COMPILER_PREFIX(...)
+#define CONFIG_SYSROOT ""
+#define ENABLE_SYSROOT 1
+#define IF_SYSROOT(...) __VA_ARGS__
+#define IF_NOT_SYSROOT(...)
 #define CONFIG_EXTRA_CFLAGS "-Os"
 #define ENABLE_EXTRA_CFLAGS 1
 #define IF_EXTRA_CFLAGS(...) __VA_ARGS__
 #define IF_NOT_EXTRA_CFLAGS(...)
+#define CONFIG_EXTRA_LDFLAGS ""
+#define ENABLE_EXTRA_LDFLAGS 1
+#define IF_EXTRA_LDFLAGS(...) __VA_ARGS__
+#define IF_NOT_EXTRA_LDFLAGS(...)
+#define CONFIG_EXTRA_LDLIBS ""
+#define ENABLE_EXTRA_LDLIBS 1
+#define IF_EXTRA_LDLIBS(...) __VA_ARGS__
+#define IF_NOT_EXTRA_LDLIBS(...)
 
 /*
  * Debugging Options
