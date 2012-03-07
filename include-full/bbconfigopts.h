@@ -577,7 +577,7 @@ static const char bbconfig_config[] ALIGN1 =
 "CONFIG_DEVMEM=y\n"
 "# CONFIG_EJECT is not set\n"
 "# CONFIG_FEATURE_EJECT_SCSI is not set\n"
-"# CONFIG_FBSPLASH is not set\n"
+"CONFIG_FBSPLASH=y\n"
 "CONFIG_FLASHCP=y\n"
 "CONFIG_FLASH_LOCK=y\n"
 "CONFIG_FLASH_UNLOCK=y\n"

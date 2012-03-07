@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * Busybox version: 1.20.0-ics
  */
-#define AUTOCONF_TIMESTAMP "2012-03-07 16:54 +0100"
+#define AUTOCONF_TIMESTAMP "2012-03-07 17:40 +0100"
 
 #define CONFIG_HAVE_DOT_CONFIG 1
 #define ENABLE_HAVE_DOT_CONFIG 1
@@ -2380,10 +2380,10 @@
 #define ENABLE_FEATURE_EJECT_SCSI 0
 #define IF_FEATURE_EJECT_SCSI(...)
 #define IF_NOT_FEATURE_EJECT_SCSI(...) __VA_ARGS__
-#undef CONFIG_FBSPLASH
-#define ENABLE_FBSPLASH 0
-#define IF_FBSPLASH(...)
-#define IF_NOT_FBSPLASH(...) __VA_ARGS__
+#define CONFIG_FBSPLASH 1
+#define ENABLE_FBSPLASH 1
+#define IF_FBSPLASH(...) __VA_ARGS__
+#define IF_NOT_FBSPLASH(...)
 #define CONFIG_FLASHCP 1
 #define ENABLE_FLASHCP 1
 #define IF_FLASHCP(...) __VA_ARGS__
