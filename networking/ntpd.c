@@ -48,6 +48,7 @@
 #include <netinet/ip.h> /* For IPTOS_LOWDELAY definition */
 #ifdef __BIONIC__
 #include <linux/timex.h>
+extern int adjtimex (struct timex *);
 #else
 #include <sys/timex.h>
 #endif
@@ -2092,6 +2093,7 @@ int ntpd_main(int argc UNUSED_PARAM, char **argv)
 
 		/* Here we may block */
 		VERB2 {
+#if ENABLE_FEATURE_NTPD_SERVER
 			if (i > (ENABLE_FEATURE_NTPD_SERVER && G.listen_fd != -1)) {
 				/* We wait for at least one reply.
 				 * Poll for it, without wasting time for message.
@@ -2104,6 +2106,7 @@ int ntpd_main(int argc UNUSED_PARAM, char **argv)
 				if (--timeout <= 0)
 					goto did_poll;
 			}
+#endif
 			bb_error_msg("poll:%us sockets:%u interval:%us", timeout, i, 1 << G.poll_exp);
 		}
 		nfds = poll(pfd, i, timeout * 1000);

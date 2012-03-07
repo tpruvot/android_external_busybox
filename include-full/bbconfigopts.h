@@ -547,7 +547,7 @@ static const char bbconfig_config[] ALIGN1 =
 "# CONFIG_UBIRMVOL is not set\n"
 "# CONFIG_UBIRSVOL is not set\n"
 "# CONFIG_UBIUPDATEVOL is not set\n"
-"# CONFIG_ADJTIMEX is not set\n"
+"CONFIG_ADJTIMEX=y\n"
 "CONFIG_BBCONFIG=y\n"
 "CONFIG_FEATURE_COMPRESS_BBCONFIG=y\n"
 "# CONFIG_BEEP is not set\n"

@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.0-ics
-# Mon Feb 20 21:48:17 2012
+# Wed Mar  7 16:54:29 2012
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -645,7 +645,7 @@ CONFIG_SETSERIAL=y
 # CONFIG_UBIRMVOL is not set
 # CONFIG_UBIRSVOL is not set
 # CONFIG_UBIUPDATEVOL is not set
-# CONFIG_ADJTIMEX is not set
+CONFIG_ADJTIMEX=y
 CONFIG_BBCONFIG=y
 CONFIG_FEATURE_COMPRESS_BBCONFIG=y
 # CONFIG_BEEP is not set
