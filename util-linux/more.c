@@ -59,14 +59,13 @@ int more_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 int more_main(int argc UNUSED_PARAM, char **argv)
 {
 	int c = EOF; /* for compiler */
-	int lines;
 	int input = 0;
 	int spaces = 0;
 	int please_display_more_prompt;
 	struct stat st;
 	FILE *file;
 	FILE *cin;
-	int len;
+	unsigned len, lines;
 	unsigned terminal_width;
 	unsigned terminal_height;
 
