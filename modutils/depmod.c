@@ -50,7 +50,10 @@ static int FAST_FUNC parse_module(const char *fname, struct stat *sb UNUSED_PARA
 	*first = info;
 
 	info->dnext = info->dprev = info;
-	info->name = xstrdup(fname + 2); /* skip "./" */
+	if (strncmp(fname, "./", 2) == 0)
+		info->name = xstrdup(fname + 2);
+	else
+		info->name = xstrdup(fname);
 	info->modname = xstrdup(filename2modname(fname, modname));
 	for (ptr = image; ptr < image + len - 10; ptr++) {
 		if (strncmp(ptr, "depends=", 8) == 0) {
@@ -127,11 +130,10 @@ static void xfreopen_write(const char *file, FILE *f)
 }
 
 //usage:#if !ENABLE_MODPROBE_SMALL
-//usage:#define depmod_trivial_usage "[-n] [-b BASE] [VERSION] [MODFILES]..."
+//usage:#define depmod_trivial_usage "[-n] [MODFILES]..."
 //usage:#define depmod_full_usage "\n\n"
 //usage:       "Generate modules.dep, alias, and symbols files"
 //usage:     "\n"
-//usage:     "\n	-b BASE	Use BASE/lib/modules/VERSION"
 //usage:     "\n	-n	Dry run: print files to stdout"
 //usage:#endif
 
