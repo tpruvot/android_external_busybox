@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.0-ics
-# Fri Mar 16 07:11:45 2012
+# Sat Mar 17 17:42:48 2012
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -710,7 +710,7 @@ CONFIG_RX=y
 CONFIG_SETSID=y
 CONFIG_STRINGS=y
 CONFIG_TASKSET=y
-# CONFIG_FEATURE_TASKSET_FANCY is not set
+CONFIG_FEATURE_TASKSET_FANCY=y
 CONFIG_TIME=y
 CONFIG_TIMEOUT=y
 CONFIG_TTYSIZE=y
