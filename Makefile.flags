@@ -97,10 +97,18 @@ CFLAGS += $(strip $(subst ",,$(CONFIG_EXTRA_CFLAGS)))
 #"))
 endif
 
-ifneq ($(CONFIG_CROSS_COMPILER_PREFIX),"arm-linux-androideabi-")
+# Note: both "" (string consisting of two quote chars) and empty string
+# are possible, and should be skipped below.
+ifneq ($(subst "",,$(CONFIG_SYSROOT)),)
+CFLAGS += --sysroot=$(CONFIG_SYSROOT)
+export SYSROOT=$(CONFIG_SYSROOT)
+endif
+
+# Android has no separate crypt library
+CRYPT_AVAILABLE := $(shell echo 'int main(void){return 0;}' | $(CC) $(CFLAGS) -lcrypt -o /dev/null -xc - >/dev/null 2>&1 && echo "y")
+ifeq ($(CRYPT_AVAILABLE),y)
 LDLIBS += m crypt
 else
-# Android libc has no crypt. TODO: make a generic CONFIG_LINK_WITH_CRYPT option?
 LDLIBS += m
 endif
 
@@ -135,6 +143,16 @@ endif
 W_ELF2FLT = -elf2flt
 ifneq (,$(findstring $(W_ELF2FLT),$(LDFLAGS) $(CFLAGS_busybox)))
 SKIP_STRIP = y
+endif
+
+ifneq ($(CONFIG_EXTRA_LDFLAGS),)
+EXTRA_LDFLAGS += $(strip $(subst ",,$(CONFIG_EXTRA_LDFLAGS)))
+#"))
+endif
+
+ifneq ($(CONFIG_EXTRA_LDLIBS),)
+LDLIBS += $(strip $(subst ",,$(CONFIG_EXTRA_LDLIBS)))
+#"))
 endif
 
 # Busybox is a stack-fatty so make sure we increase default size
