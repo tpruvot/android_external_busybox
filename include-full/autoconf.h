@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * Busybox version: 1.20.0-cm7
  */
-#define AUTOCONF_TIMESTAMP "2012-02-05 13:18 +0100"
+#define AUTOCONF_TIMESTAMP "2012-04-05 01:12 +0200"
 
 #define CONFIG_HAVE_DOT_CONFIG 1
 #define ENABLE_HAVE_DOT_CONFIG 1
@@ -204,10 +204,22 @@
 #define ENABLE_CROSS_COMPILER_PREFIX 1
 #define IF_CROSS_COMPILER_PREFIX(...) __VA_ARGS__
 #define IF_NOT_CROSS_COMPILER_PREFIX(...)
+#define CONFIG_SYSROOT ""
+#define ENABLE_SYSROOT 1
+#define IF_SYSROOT(...) __VA_ARGS__
+#define IF_NOT_SYSROOT(...)
 #define CONFIG_EXTRA_CFLAGS "-Os -fno-short-enums -fgcse-after-reload -frerun-cse-after-loop -frename-registers"
 #define ENABLE_EXTRA_CFLAGS 1
 #define IF_EXTRA_CFLAGS(...) __VA_ARGS__
 #define IF_NOT_EXTRA_CFLAGS(...)
+#define CONFIG_EXTRA_LDFLAGS ""
+#define ENABLE_EXTRA_LDFLAGS 1
+#define IF_EXTRA_LDFLAGS(...) __VA_ARGS__
+#define IF_NOT_EXTRA_LDFLAGS(...)
+#define CONFIG_EXTRA_LDLIBS ""
+#define ENABLE_EXTRA_LDLIBS 1
+#define IF_EXTRA_LDLIBS(...) __VA_ARGS__
+#define IF_NOT_EXTRA_LDLIBS(...)
 
 /*
  * Debugging Options
@@ -2260,10 +2272,10 @@
 #define ENABLE_UBIUPDATEVOL 0
 #define IF_UBIUPDATEVOL(...)
 #define IF_NOT_UBIUPDATEVOL(...) __VA_ARGS__
-#undef CONFIG_ADJTIMEX
-#define ENABLE_ADJTIMEX 0
-#define IF_ADJTIMEX(...)
-#define IF_NOT_ADJTIMEX(...) __VA_ARGS__
+#define CONFIG_ADJTIMEX 1
+#define ENABLE_ADJTIMEX 1
+#define IF_ADJTIMEX(...) __VA_ARGS__
+#define IF_NOT_ADJTIMEX(...)
 #define CONFIG_BBCONFIG 1
 #define ENABLE_BBCONFIG 1
 #define IF_BBCONFIG(...) __VA_ARGS__
@@ -3148,6 +3160,10 @@
 #define ENABLE_IOSTAT 1
 #define IF_IOSTAT(...) __VA_ARGS__
 #define IF_NOT_IOSTAT(...)
+#define CONFIG_LSOF 1
+#define ENABLE_LSOF 1
+#define IF_LSOF(...) __VA_ARGS__
+#define IF_NOT_LSOF(...)
 #define CONFIG_MPSTAT 1
 #define ENABLE_MPSTAT 1
 #define IF_MPSTAT(...) __VA_ARGS__

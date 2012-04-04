@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.0-cm7
-# Sun Feb  5 13:18:34 2012
+# Thu Apr  5 01:12:20 2012
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -62,7 +62,10 @@ CONFIG_FEATURE_SYSLOG=y
 # CONFIG_FEATURE_SHARED_BUSYBOX is not set
 # CONFIG_LFS is not set
 CONFIG_CROSS_COMPILER_PREFIX="arm-eabi-"
+CONFIG_SYSROOT=""
 CONFIG_EXTRA_CFLAGS="-Os -fno-short-enums -fgcse-after-reload -frerun-cse-after-loop -frename-registers"
+CONFIG_EXTRA_LDFLAGS=""
+CONFIG_EXTRA_LDLIBS=""
 
 #
 # Debugging Options
@@ -645,7 +648,7 @@ CONFIG_SETSERIAL=y
 # CONFIG_UBIRMVOL is not set
 # CONFIG_UBIRSVOL is not set
 # CONFIG_UBIUPDATEVOL is not set
-# CONFIG_ADJTIMEX is not set
+CONFIG_ADJTIMEX=y
 CONFIG_BBCONFIG=y
 CONFIG_FEATURE_COMPRESS_BBCONFIG=y
 # CONFIG_BEEP is not set
@@ -882,6 +885,7 @@ CONFIG_FEATURE_MIME_CHARSET=""
 # Process Utilities
 #
 CONFIG_IOSTAT=y
+CONFIG_LSOF=y
 CONFIG_MPSTAT=y
 # CONFIG_NMETER is not set
 CONFIG_PMAP=y
