@@ -34,7 +34,7 @@ networking/nslookup.c
 
 procps/free.c procps/fuser.c procps/kill.c procps/pgrep.c procps/pidof.c procps/ps.c procps/renice.c procps/sysctl.c procps/top.c procps/uptime.c procps/watch.c
 procps/pmap.c procps/iostat.c procps/mpstat.c
-procps/pstree.c procps/pwdx.c
+procps/lsof.c procps/pstree.c procps/pwdx.c
 
 shell/ash.c shell/ash_ptr_hack.c shell/math.c shell/random.c shell/shell_common.c
 

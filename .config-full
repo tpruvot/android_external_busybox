@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.20.0-ics
-# Sat Mar 17 17:42:48 2012
+# Thu Apr  5 00:40:10 2012
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -885,6 +885,7 @@ CONFIG_FEATURE_MIME_CHARSET=""
 # Process Utilities
 #
 CONFIG_IOSTAT=y
+CONFIG_LSOF=y
 CONFIG_MPSTAT=y
 # CONFIG_NMETER is not set
 CONFIG_PMAP=y

@@ -767,6 +767,7 @@ static const char bbconfig_config[] ALIGN1 =
 "# CONFIG_FEATURE_REFORMIME_COMPAT is not set\n"
 "# CONFIG_SENDMAIL is not set\n"
 "CONFIG_IOSTAT=y\n"
+"CONFIG_LSOF=y\n"
 "CONFIG_MPSTAT=y\n"
 "# CONFIG_NMETER is not set\n"
 "CONFIG_PMAP=y\n"

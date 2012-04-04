@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * Busybox version: 1.20.0-ics
  */
-#define AUTOCONF_TIMESTAMP "2012-03-17 17:43 +0100"
+#define AUTOCONF_TIMESTAMP "2012-04-05 00:40 +0200"
 
 #define CONFIG_HAVE_DOT_CONFIG 1
 #define ENABLE_HAVE_DOT_CONFIG 1
@@ -3156,6 +3156,10 @@
 #define ENABLE_IOSTAT 0
 #define IF_IOSTAT(...)
 #define IF_NOT_IOSTAT(...) __VA_ARGS__
+#define CONFIG_LSOF 1
+#define ENABLE_LSOF 1
+#define IF_LSOF(...) __VA_ARGS__
+#define IF_NOT_LSOF(...)
 #undef CONFIG_MPSTAT
 #define ENABLE_MPSTAT 0
 #define IF_MPSTAT(...)
