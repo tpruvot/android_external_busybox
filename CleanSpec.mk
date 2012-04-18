@@ -39,6 +39,7 @@
 # ************************************************
 
 $(call add-clean-step, rm -rf $(PRODUCT_OUT)/obj/STATIC_LIBRARIES/busybox_prepare_intermediates)
+$(call add-clean-step, rm -rf $(PRODUCT_OUT)/obj/include/busybox-*)
 
 $(call add-clean-step, rm -rf $(PRODUCT_OUT)/obj/EXECUTABLES/busybox_intermediates)
 $(call add-clean-step, rm -rf $(PRODUCT_OUT)/obj/STATIC_LIBRARIES/libbusybox_intermediates)
