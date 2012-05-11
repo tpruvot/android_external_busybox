@@ -26,12 +26,13 @@ include $(CLEAR_VARS)
 
 # Each profile require a compressed usage/config, outside the source tree for git history
 # We keep the uncompressed headers in local include-<profile> to track config changes.
+# TODO: generate includes in out/
 
-BB_INCLUDES_OUT := $(TARGET_OUT_INTERMEDIATES)/include
-$(BB_INCLUDES_OUT):
-	mkdir -p $(ANDROID_BUILD_TOP)/$(BB_INCLUDES_OUT)
+# BB_INCLUDES_OUT := $(TARGET_OUT_INTERMEDIATES)/include
+# $(BB_INCLUDES_OUT):
+#	mkdir -p $(ANDROID_BUILD_TOP)/$(BB_INCLUDES_OUT)
 
-# Execute make clean, make prepare and copy profiles required for normal & static busybox (recovery)
+# Execute make clean, make prepare and copy profiles required for normal & static lib (recovery)
 
 KERNEL_MODULES_DIR ?= /system/lib/modules
 BUSYBOX_CONFIG := minimal full
