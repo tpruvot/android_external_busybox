@@ -39,7 +39,7 @@ struct ext2_super_block {
 	uint8_t	volume_name[16];
 } PACKED;
 
-#define EXT_SUPERBLOCK_OFFSET 0x400
+#define EXT_SUPERBLOCK_OFFSET			0x400
 
 /* for s_flags */
 #define EXT2_FLAGS_TEST_FILESYS			0x0004
@@ -106,14 +106,12 @@ int FAST_FUNC volume_id_probe_ext(struct volume_id *id /*,uint64_t off*/)
 	dbg("ext: label '%s' uuid '%s'", id->label, id->uuid);
 
 #if ENABLE_FEATURE_BLKID_TYPE
-	if ((le32_to_cpu(es->feature_ro_compat) & EXT4_FEATURE_RO_COMPAT_HUGE_FILE)
-	 || (le32_to_cpu(es->feature_ro_compat) & EXT4_FEATURE_RO_COMPAT_DIR_NLINK)
-	 || (le32_to_cpu(es->feature_incompat) & EXT4_FEATURE_INCOMPAT_EXTENTS)
-	 || (le32_to_cpu(es->feature_incompat) & EXT4_FEATURE_INCOMPAT_64BIT))
-	{
+	if ((es->feature_ro_compat & cpu_to_le32(EXT4_FEATURE_RO_COMPAT_HUGE_FILE | EXT4_FEATURE_RO_COMPAT_DIR_NLINK))
+	 || (es->feature_incompat & cpu_to_le32(EXT4_FEATURE_INCOMPAT_EXTENTS | EXT4_FEATURE_INCOMPAT_64BIT))
+	) {
 		id->type = "ext4";
 	}
-	else if (le32_to_cpu(es->feature_compat) & EXT3_FEATURE_COMPAT_HAS_JOURNAL)
+	else if (es->feature_compat & cpu_to_le32(EXT3_FEATURE_COMPAT_HAS_JOURNAL))
 		id->type = "ext3";
 	else
 		id->type = "ext2";
