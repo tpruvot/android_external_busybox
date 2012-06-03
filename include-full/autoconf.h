@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * Busybox version: 1.20.1-cm9
  */
-#define AUTOCONF_TIMESTAMP "2012-05-28 03:23 +0200"
+#define AUTOCONF_TIMESTAMP "2012-06-03 19:24 +0200"
 
 #define CONFIG_HAVE_DOT_CONFIG 1
 #define ENABLE_HAVE_DOT_CONFIG 1
@@ -2412,10 +2412,10 @@
 #define ENABLE_FLASH_ERASEALL 0
 #define IF_FLASH_ERASEALL(...)
 #define IF_NOT_FLASH_ERASEALL(...) __VA_ARGS__
-#undef CONFIG_IONICE
-#define ENABLE_IONICE 0
-#define IF_IONICE(...)
-#define IF_NOT_IONICE(...) __VA_ARGS__
+#define CONFIG_IONICE 1
+#define ENABLE_IONICE 1
+#define IF_IONICE(...) __VA_ARGS__
+#define IF_NOT_IONICE(...)
 #undef CONFIG_INOTIFYD
 #define ENABLE_INOTIFYD 0
 #define IF_INOTIFYD(...)

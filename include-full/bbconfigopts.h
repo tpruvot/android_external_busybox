@@ -585,7 +585,7 @@ static const char bbconfig_config[] ALIGN1 =
 "CONFIG_FLASH_LOCK=y\n"
 "CONFIG_FLASH_UNLOCK=y\n"
 "# CONFIG_FLASH_ERASEALL is not set\n"
-"# CONFIG_IONICE is not set\n"
+"CONFIG_IONICE=y\n"
 "# CONFIG_INOTIFYD is not set\n"
 "# CONFIG_LAST is not set\n"
 "# CONFIG_FEATURE_LAST_SMALL is not set\n"
