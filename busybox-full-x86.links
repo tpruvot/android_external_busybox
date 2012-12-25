@@ -21,6 +21,7 @@
 /bin/chmod
 /bin/chown
 /sbin/chroot
+/bin/chvt
 /bin/clear
 /bin/cmp
 /bin/comm
@@ -32,6 +33,7 @@
 /bin/date
 /bin/dc
 /bin/dd
+/bin/deallocvt
 /sbin/depmod
 /sbin/devmem
 /bin/df
@@ -49,8 +51,10 @@
 /bin/expr
 /bin/false
 /sbin/fdisk
+/bin/fgconsole
 /bin/fgrep
 /bin/find
+/bin/findfs
 /sbin/flashcp
 /sbin/flash_unlock
 /sbin/flash_lock
@@ -87,6 +91,7 @@
 /bin/ls
 /bin/lsattr
 /sbin/lsmod
+/bin/lspci
 /bin/lsusb
 /bin/lzcat
 /bin/lzma
@@ -94,6 +99,7 @@
 /bin/lzopcat
 /sbin/man
 /bin/md5sum
+/sbin/mdev
 /bin/mesg
 /bin/mkdir
 /sbin/mke2fs
@@ -115,10 +121,12 @@
 /bin/nc
 /bin/netstat
 /bin/nice
+/bin/nmeter
 /bin/nohup
 /bin/nslookup
 /sbin/ntpd
 /bin/od
+/bin/openvt
 /bin/patch
 /bin/pgrep
 /bin/pidof
@@ -130,8 +138,10 @@
 /bin/pstree
 /bin/pmap
 /sbin/poweroff
+/bin/powertop
 /bin/pwd
 /bin/pwdx
+/bin/rdate
 /sbin/rdev
 /bin/readlink
 /bin/realpath
@@ -148,6 +158,7 @@
 /bin/sed
 /bin/seq
 /sbin/setconsole
+/bin/setkeycodes
 /bin/setserial
 /bin/setsid
 /bin/sh
@@ -155,6 +166,7 @@
 /bin/sha256sum
 /bin/sha512sum
 /bin/sleep
+/bin/smemcap
 /bin/sort
 /bin/split
 /bin/stat
@@ -163,6 +175,7 @@
 /bin/sum
 /sbin/swapoff
 /sbin/swapon
+/sbin/switch_root
 /bin/sync
 /sbin/sysctl
 /bin/tac
@@ -182,6 +195,7 @@
 /bin/tr
 /bin/traceroute
 /bin/true
+/bin/tty
 /bin/ttysize
 /sbin/tune2fs
 /bin/umount
