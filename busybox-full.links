@@ -153,6 +153,7 @@
 /bin/sh
 /bin/sha1sum
 /bin/sha256sum
+/bin/sha3sum
 /bin/sha512sum
 /bin/sleep
 /bin/sort
