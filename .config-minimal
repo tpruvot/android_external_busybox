@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.21.0-cm7
-# Sun Feb 17 22:26:48 2013
+# Wed Feb 27 07:55:34 2013
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -554,6 +554,7 @@ CONFIG_FEATURE_FDISK_WRITABLE=y
 # CONFIG_FLOCK is not set
 CONFIG_FREERAMDISK=y
 # CONFIG_FSCK_MINIX is not set
+CONFIG_FSTRIM=y
 CONFIG_MKFS_EXT2=y
 # CONFIG_MKFS_MINIX is not set
 # CONFIG_FEATURE_MINIX2 is not set
