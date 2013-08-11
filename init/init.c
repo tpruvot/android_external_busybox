@@ -145,7 +145,7 @@
 
 /* Default sysinit script. */
 #ifndef INIT_SCRIPT
-#define INIT_SCRIPT  "/etc/init.d/rcS"
+# define INIT_SCRIPT  "/etc/init.d/rcS"
 #endif
 
 /* Each type of actions can appear many times. They will be
@@ -640,7 +640,7 @@ static void new_init_action(uint8_t action_type, const char *command, const char
 
 /* NOTE that if CONFIG_FEATURE_USE_INITTAB is NOT defined,
  * then parse_inittab() simply adds in some default
- * actions(i.e., runs INIT_SCRIPT and then starts a pair
+ * actions (i.e., runs INIT_SCRIPT and then starts a pair
  * of "askfirst" shells).  If CONFIG_FEATURE_USE_INITTAB
  * _is_ defined, but /etc/inittab is missing, this
  * results in the same set of default behaviors.
@@ -655,23 +655,22 @@ static void parse_inittab(void)
 #endif
 	{
 		/* No inittab file - set up some default behavior */
-		/* Reboot on Ctrl-Alt-Del */
-		new_init_action(CTRLALTDEL, "reboot", "");
-		/* Umount all filesystems on halt/reboot */
-		new_init_action(SHUTDOWN, "umount -a -r", "");
-		/* Swapoff on halt/reboot */
-		if (ENABLE_SWAPONOFF)
-			new_init_action(SHUTDOWN, "swapoff -a", "");
-		/* Prepare to restart init when a QUIT is received */
-		new_init_action(RESTART, "init", "");
+		/* Sysinit */
+		new_init_action(SYSINIT, INIT_SCRIPT, "");
 		/* Askfirst shell on tty1-4 */
 		new_init_action(ASKFIRST, bb_default_login_shell, "");
 //TODO: VC_1 instead of ""? "" is console -> ctty problems -> angry users
 		new_init_action(ASKFIRST, bb_default_login_shell, VC_2);
 		new_init_action(ASKFIRST, bb_default_login_shell, VC_3);
 		new_init_action(ASKFIRST, bb_default_login_shell, VC_4);
-		/* sysinit */
-		new_init_action(SYSINIT, INIT_SCRIPT, "");
+		/* Reboot on Ctrl-Alt-Del */
+		new_init_action(CTRLALTDEL, "reboot", "");
+		/* Umount all filesystems on halt/reboot */
+		new_init_action(SHUTDOWN, "umount -a -r", "");
+		/* Swapoff on halt/reboot */
+		new_init_action(SHUTDOWN, "swapoff -a", "");
+		/* Restart init when a QUIT is received */
+		new_init_action(RESTART, "init", "");
 		return;
 	}
 
@@ -1058,10 +1057,13 @@ int init_main(int argc UNUSED_PARAM, char **argv)
 	message(L_CONSOLE | L_LOG, "init started: %s", bb_banner);
 #endif
 
+#if 0
+/* It's 2013, does anyone really still depend on this? */
+/* If you do, consider adding swapon to sysinot actions then! */
 /* struct sysinfo is linux-specific */
-#ifdef __linux__
+# ifdef __linux__
 	/* Make sure there is enough memory to do something useful. */
-	if (ENABLE_SWAPONOFF) {
+	/*if (ENABLE_SWAPONOFF) - WRONG: we may have non-bbox swapon*/ {
 		struct sysinfo info;
 
 		if (sysinfo(&info) == 0
@@ -1075,6 +1077,7 @@ int init_main(int argc UNUSED_PARAM, char **argv)
 			run_actions(SYSINIT);   /* wait and removing */
 		}
 	}
+# endif
 #endif
 
 	/* Check if we are supposed to be in single user mode */
@@ -1234,9 +1237,6 @@ int init_main(int argc UNUSED_PARAM, char **argv)
 //usage:	"	::shutdown:/sbin/swapoff -a\n"
 //usage:	"	::shutdown:/bin/umount -a -r\n"
 //usage:	"	::restart:/sbin/init\n"
-//usage:	"\n"
-//usage:	"if it detects that /dev/console is _not_ a serial console, it will also run:\n"
-//usage:	"\n"
 //usage:	"	tty2::askfirst:/bin/sh\n"
 //usage:	"	tty3::askfirst:/bin/sh\n"
 //usage:	"	tty4::askfirst:/bin/sh\n"
@@ -1252,11 +1252,7 @@ int init_main(int argc UNUSED_PARAM, char **argv)
 //usage:	"		the specified process to run on. The contents of this field are\n"
 //usage:	"		appended to \"/dev/\" and used as-is. There is no need for this field to\n"
 //usage:	"		be unique, although if it isn't you may have strange results. If this\n"
-//usage:	"		field is left blank, the controlling tty is set to the console. Also\n"
-//usage:	"		note that if BusyBox detects that a serial console is in use, then only\n"
-//usage:	"		entries whose controlling tty is either the serial console or /dev/null\n"
-//usage:	"		will be run. BusyBox init does nothing with utmp. We don't need no\n"
-//usage:	"		stinkin' utmp.\n"
+//usage:	"		field is left blank, then the init's stdin/out will be used.\n"
 //usage:	"\n"
 //usage:	"	<runlevels>:\n"
 //usage:	"\n"
