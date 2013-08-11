@@ -53,6 +53,12 @@ s     - suid type:
 # define APPLET_NOEXEC(name,main,l,s,name2)  LINK l name
 # define APPLET_NOFORK(name,main,l,s,name2)  LINK l name
 
+#elif defined(MAKE_SUID)
+# define APPLET(name,l,s)                    SUID s l name
+# define APPLET_ODDNAME(name,main,l,s,name2) SUID s l name
+# define APPLET_NOEXEC(name,main,l,s,name2)  SUID s l name
+# define APPLET_NOFORK(name,main,l,s,name2)  SUID s l name
+
 #else
   static struct bb_applet applets[] = { /*    name, main, location, need_suid */
 # define APPLET(name,l,s)                    { #name, #name, l, s },
@@ -95,7 +101,7 @@ IF_ADD_SHELL(   APPLET_ODDNAME(add-shell   , add_remove_shell, BB_DIR_USR_SBIN, 
 IF_REMOVE_SHELL(APPLET_ODDNAME(remove-shell, add_remove_shell, BB_DIR_USR_SBIN, BB_SUID_DROP, remove_shell))
 IF_CONSPY(APPLET(conspy, BB_DIR_BIN, BB_SUID_DROP))
 IF_NANDWRITE(APPLET(nandwrite, BB_DIR_USR_SBIN, BB_SUID_DROP))
-IF_NANDWRITE(APPLET_ODDNAME(nanddump, nandwrite, BB_DIR_USR_SBIN, BB_SUID_DROP, nanddump))
+IF_NANDDUMP(APPLET_ODDNAME(nanddump, nandwrite, BB_DIR_USR_SBIN, BB_SUID_DROP, nanddump))
 IF_SETSERIAL(APPLET(setserial, BB_DIR_BIN, BB_SUID_DROP))
 IF_UBIATTACH(APPLET_ODDNAME(ubiattach, ubi_tools, BB_DIR_USR_SBIN, BB_SUID_DROP, ubiattach))
 IF_UBIDETACH(APPLET_ODDNAME(ubidetach, ubi_tools, BB_DIR_USR_SBIN, BB_SUID_DROP, ubidetach))
@@ -107,12 +113,12 @@ IF_DEPMOD(APPLET(depmod, BB_DIR_SBIN, BB_SUID_DROP))
 IF_INSMOD(APPLET(insmod, BB_DIR_SBIN, BB_SUID_DROP))
 IF_LSMOD(APPLET(lsmod, BB_DIR_SBIN, BB_SUID_DROP))
 IF_MODINFO(APPLET(modinfo, BB_DIR_SBIN, BB_SUID_DROP))
-IF_MODPROBE(APPLET(modprobe, BB_DIR_SBIN, BB_SUID_DROP))
 IF_MODPROBE_SMALL(APPLET(modprobe, BB_DIR_SBIN, BB_SUID_DROP))
 IF_MODPROBE_SMALL(APPLET_ODDNAME(depmod, modprobe, BB_DIR_SBIN, BB_SUID_DROP, modprobe))
 IF_MODPROBE_SMALL(APPLET_ODDNAME(insmod, modprobe, BB_DIR_SBIN, BB_SUID_DROP, modprobe))
 IF_MODPROBE_SMALL(APPLET_ODDNAME(lsmod, modprobe, BB_DIR_SBIN, BB_SUID_DROP, modprobe))
 IF_MODPROBE_SMALL(APPLET_ODDNAME(rmmod, modprobe, BB_DIR_SBIN, BB_SUID_DROP, modprobe))
+IF_MODPROBE(APPLET(modprobe, BB_DIR_SBIN, BB_SUID_DROP))
 IF_RMMOD(APPLET(rmmod, BB_DIR_SBIN, BB_SUID_DROP))
 IF_NBDCLIENT(APPLET_ODDNAME(nbd-client, nbdclient, BB_DIR_USR_SBIN, BB_SUID_DROP, nbdclient))
 IF_PING(APPLET(ping, BB_DIR_BIN, BB_SUID_MAYBE))
@@ -309,7 +315,7 @@ IF_LZOP(APPLET(lzop, BB_DIR_BIN, BB_SUID_DROP))
 IF_LZOP(APPLET_ODDNAME(lzopcat, lzop, BB_DIR_USR_BIN, BB_SUID_DROP, lzopcat))
 IF_MAKEDEVS(APPLET(makedevs, BB_DIR_SBIN, BB_SUID_DROP))
 IF_MAKEMIME(APPLET(makemime, BB_DIR_BIN, BB_SUID_DROP))
-IF_MAN(APPLET(man, BB_DIR_SBIN, BB_SUID_DROP))
+IF_MAN(APPLET(man, BB_DIR_USR_BIN, BB_SUID_DROP))
 IF_MATCHPATHCON(APPLET(matchpathcon, BB_DIR_USR_SBIN, BB_SUID_DROP))
 IF_MD5SUM(APPLET_NOEXEC(md5sum, md5_sha1_sum, BB_DIR_USR_BIN, BB_SUID_DROP, md5sum))
 IF_MICROCOM(APPLET(microcom, BB_DIR_USR_BIN, BB_SUID_DROP))
@@ -488,7 +494,8 @@ IF_YES(APPLET_NOFORK(yes, yes, BB_DIR_USR_BIN, BB_SUID_DROP, yes))
 IF_GUNZIP(APPLET_ODDNAME(zcat, gunzip, BB_DIR_BIN, BB_SUID_DROP, zcat))
 IF_ZCIP(APPLET(zcip, BB_DIR_SBIN, BB_SUID_DROP))
 
-#if !defined(PROTOTYPES) && !defined(NAME_MAIN_CNAME) && !defined(MAKE_USAGE)
+#if !defined(PROTOTYPES) && !defined(NAME_MAIN_CNAME) && !defined(MAKE_USAGE) \
+	&& !defined(MAKE_LINKS) && !defined(MAKE_SUID)
 };
 #endif
 

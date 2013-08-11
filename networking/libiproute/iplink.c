@@ -328,7 +328,7 @@ static void vlan_parse_opt(char **argv, struct nlmsghdr *n, unsigned int size)
 	};
 	int arg;
 	uint16_t id, proto;
-	struct ifla_vlan_flags flags = {};
+	struct ifla_vlan_flags flags = { .flags=0, .mask=0 };
 
 	while (*argv) {
 		arg = index_in_substrings(keywords, *argv);

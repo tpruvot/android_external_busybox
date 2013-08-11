@@ -49,7 +49,7 @@ int flashcp_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 int flashcp_main(int argc UNUSED_PARAM, char **argv)
 {
 	int fd_f, fd_d; /* input file and mtd device file descriptors */
-	int i;
+	int i; unsigned u;
 	uoff_t erase_count;
 	struct mtd_info_user mtd;
 	struct erase_info_user e;
@@ -97,8 +97,8 @@ int flashcp_main(int argc UNUSED_PARAM, char **argv)
 	}
 #endif
 	e.start = 0;
-	for (i = 1; i <= erase_count; i++) {
-		progress(-1, i, erase_count);
+	for (u = 1; u <= erase_count; u++) {
+		progress(-1, u, erase_count);
 #if !MTD_DEBUG
 		if (ioctl(fd_d, MEMERASE, &e) < 0) {
 			bb_perror_msg_and_die("erase error at 0x%llx on %s",

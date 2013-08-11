@@ -103,6 +103,9 @@ typedef unsigned reg_syntax_t;
    If not set, newline is literal.  */
 #define RE_NEWLINE_ALT (RE_LIMITED_OPS << 1)
 
+/* Required for vi.c */
+#define RE_ICASE REG_ICASE
+
 /* If this bit is set, then `{...}' defines an interval, and \{ and \}
      are literals.
   If not set, then `\{...\}' defines an interval.  */
