@@ -49,8 +49,7 @@ void FAST_FUNC reinit_unicode(const char *LANG)
 	setlocale(LC_CTYPE, LANG ? LANG : "");
 
 	/* In unicode, this is a one character string */
-// can use unicode_strlen(string) too, but otherwise unicode_strlen() is unused
-	width = mbstowcs(NULL, unicode_0x394, INT_MAX);
+	width = unicode_strlen(unicode_0x394);
 	unicode_status = (width == 1 ? UNICODE_ON : UNICODE_OFF);
 }
 
@@ -994,7 +993,6 @@ int FAST_FUNC unicode_bidi_is_neutral_wchar(wint_t wc)
 
 /* The rest is mostly same for libc and for "homegrown" support */
 
-#if 0 // UNUSED
 size_t FAST_FUNC unicode_strlen(const char *string)
 {
 	size_t width = mbstowcs(NULL, string, INT_MAX);
@@ -1002,7 +1000,6 @@ size_t FAST_FUNC unicode_strlen(const char *string)
 		return strlen(string);
 	return width;
 }
-#endif
 
 size_t FAST_FUNC unicode_strwidth(const char *string)
 {
