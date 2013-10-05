@@ -156,6 +156,7 @@ static const char bbconfig_config[] ALIGN1 =
 "CONFIG_TEST=y\n"
 "# CONFIG_FEATURE_TEST_64 is not set\n"
 "CONFIG_TOUCH=y\n"
+"CONFIG_FEATURE_TOUCH_NODEREF=y\n"
 "CONFIG_FEATURE_TOUCH_SUSV3=y\n"
 "CONFIG_TR=y\n"
 "CONFIG_FEATURE_TR_CLASSES=y\n"

@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * Busybox version: 1.22.0-4.3
  */
-#define AUTOCONF_TIMESTAMP "2013-08-11 20:20 +0200"
+#define AUTOCONF_TIMESTAMP "2013-10-05 11:57 +0200"
 
 #define CONFIG_HAVE_DOT_CONFIG 1
 #define ENABLE_HAVE_DOT_CONFIG 1
@@ -972,6 +972,14 @@
 # define IF_TOUCH(...) __VA_ARGS__
 #endif
 #define IF_NOT_TOUCH(...)
+#define CONFIG_FEATURE_TOUCH_NODEREF 1
+#define ENABLE_FEATURE_TOUCH_NODEREF 1
+#ifdef MAKE_SUID
+# define IF_FEATURE_TOUCH_NODEREF(...) __VA_ARGS__ "CONFIG_FEATURE_TOUCH_NODEREF"
+#else
+# define IF_FEATURE_TOUCH_NODEREF(...) __VA_ARGS__
+#endif
+#define IF_NOT_FEATURE_TOUCH_NODEREF(...)
 #define CONFIG_FEATURE_TOUCH_SUSV3 1
 #define ENABLE_FEATURE_TOUCH_SUSV3 1
 #ifdef MAKE_SUID
