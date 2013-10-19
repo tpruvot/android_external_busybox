@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.22.0-selinux
-# Sat Oct  5 14:50:21 2013
+# Sat Oct 19 15:54:03 2013
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -655,6 +655,7 @@ CONFIG_SETSERIAL=y
 # CONFIG_UBIRMVOL is not set
 # CONFIG_UBIRSVOL is not set
 # CONFIG_UBIUPDATEVOL is not set
+# CONFIG_WALL is not set
 CONFIG_ADJTIMEX=y
 CONFIG_BBCONFIG=y
 CONFIG_FEATURE_COMPRESS_BBCONFIG=y
@@ -722,7 +723,6 @@ CONFIG_TIME=y
 CONFIG_TIMEOUT=y
 CONFIG_TTYSIZE=y
 # CONFIG_VOLNAME is not set
-# CONFIG_WALL is not set
 # CONFIG_WATCHDOG is not set
 
 #
