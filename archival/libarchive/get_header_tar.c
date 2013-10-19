@@ -144,6 +144,7 @@ static void process_pax_hdr(archive_handle_t *archive_handle, unsigned sz, int g
 #if ENABLE_FEATURE_TAR_SELINUX
 		/* Scan for SELinux contexts, via "RHT.security.selinux" keyword.
 		 * This is what Red Hat's patched version of tar uses.
+		 * Could be also "SCHILY.xattr.security.selinux" or both
 		 */
 # define SELINUX_CONTEXT_KEYWORD "RHT.security.selinux"
 		if (strncmp(value, SELINUX_CONTEXT_KEYWORD"=", sizeof(SELINUX_CONTEXT_KEYWORD"=") - 1) == 0) {
