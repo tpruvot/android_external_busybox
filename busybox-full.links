@@ -160,6 +160,7 @@
 /bin/sestatus
 /sbin/setconsole
 /bin/setenforce
+/bin/setfiles
 /bin/setsebool
 /bin/setserial
 /bin/setsid

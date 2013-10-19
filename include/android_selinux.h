@@ -12,9 +12,13 @@ static struct selabel_handle *bb_sehandle;
 #define MATCHPATHCON_NOTRANS  2 /* Do not perform any context translation. */
 #define MATCHPATHCON_VALIDATE 4 /* Validate/canonicalize contexts at init time. */
 
-#define set_matchpathcon_canoncon(context) { bb_sehandle = context; }
+#define set_matchpathcon_canoncon(canoncon) \
+	selinux_set_callback(SELINUX_CB_VALIDATE, (union selinux_callback)canoncon ## _android);
 
 #define matchpathcon(pathname, mode, context) \
+	selabel_lookup(bb_sehandle, context, pathname, mode)
+
+#define matchpathcon_index(pathname, mode, context) \
 	selabel_lookup(bb_sehandle, context, pathname, mode)
 
 #define lgetfilecon_raw(path, context) \
@@ -27,8 +31,8 @@ static struct selabel_handle *bb_sehandle;
 
 #define selinux_policy_root() "/file_contexts"
 
+
 /* other functions stubs to fix or implement */
-#define matchpathcon_index(pathname, mode, context) 0
 #define matchpathcon_filespec_add(ino, n, path) 0
 #define matchpathcon_filespec_destroy() {}
 #define matchpathcon_checkmatches(str) {}
@@ -46,7 +50,6 @@ static int selinux_getenforcemode(int *rc)
     return -1;
 }
 
-/* other functions stubs to fix or implement */
 static int matchpathcon_init(char * pathname) {
     bb_sehandle = selinux_android_file_context_handle();
     return 0;
