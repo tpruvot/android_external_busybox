@@ -45,12 +45,12 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
-/* There are two incompatible basename's, let not use them! */
+/* There are two incompatible basename's, let's not use them! */
 /* See the dirname/basename man page for details */
 #include <libgen.h> /* dirname,basename */
 #undef basename
 #define basename dont_use_basename
-#include <sys/poll.h>
+#include <poll.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
@@ -485,6 +485,8 @@ void record_signo(int signo); /* not FAST_FUNC! */
 
 void xsetgid(gid_t gid) FAST_FUNC;
 void xsetuid(uid_t uid) FAST_FUNC;
+void xsetegid(gid_t egid) FAST_FUNC;
+void xseteuid(uid_t euid) FAST_FUNC;
 void xchdir(const char *path) FAST_FUNC;
 void xchroot(const char *path) FAST_FUNC;
 void xsetenv(const char *key, const char *value) FAST_FUNC;
@@ -493,11 +495,12 @@ void bb_unsetenv_and_free(char *key) FAST_FUNC;
 void xunlink(const char *pathname) FAST_FUNC;
 void xstat(const char *pathname, struct stat *buf) FAST_FUNC;
 void xfstat(int fd, struct stat *buf, const char *errmsg) FAST_FUNC;
+int open3_or_warn(const char *pathname, int flags, int mode) FAST_FUNC;
+int open_or_warn(const char *pathname, int flags) FAST_FUNC;
+int xopen3(const char *pathname, int flags, int mode) FAST_FUNC;
 int xopen(const char *pathname, int flags) FAST_FUNC;
 int xopen_nonblocking(const char *pathname) FAST_FUNC;
-int xopen3(const char *pathname, int flags, int mode) FAST_FUNC;
-int open_or_warn(const char *pathname, int flags) FAST_FUNC;
-int open3_or_warn(const char *pathname, int flags, int mode) FAST_FUNC;
+int xopen_as_uid_gid(const char *pathname, int flags, uid_t u, gid_t g) FAST_FUNC;
 int open_or_warn_stdin(const char *pathname) FAST_FUNC;
 int xopen_stdin(const char *pathname) FAST_FUNC;
 void xrename(const char *oldpath, const char *newpath) FAST_FUNC;
@@ -1793,6 +1796,11 @@ extern struct globals *const ptr_to_globals;
 #define SET_PTR_TO_GLOBALS(x) do { \
 	(*(struct globals**)&ptr_to_globals) = (void*)(x); \
 	barrier(); \
+} while (0)
+#define FREE_PTR_TO_GLOBALS() do { \
+	if (ENABLE_FEATURE_CLEAN_UP) { \
+		free(ptr_to_globals); \
+	} \
 } while (0)
 
 /* You can change LIBBB_DEFAULT_LOGIN_SHELL, but don't use it,
