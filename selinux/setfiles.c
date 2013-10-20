@@ -275,9 +275,6 @@ static int match(const char *name, struct stat *sb, char **con)
 		name += rootpathlen;
 	}
 
-#ifdef __BIONIC__
-	matchpathcon_init(tmp_path);
-#endif
 	free(tmp_path);
 	if (rootpath != NULL && name[0] == '\0')
 		/* this is actually the root dir of the alt root */
@@ -655,16 +652,15 @@ int setfiles_main(int argc UNUSED_PARAM, char **argv)
 		if (!S_ISREG(sb.st_mode)) {
 			bb_error_msg_and_die("spec file %s is not a regular file", argv[0]);
 		}
-		/* Load the file contexts configuration and check it. */
-		rc = matchpathcon_init(argv[0]);
-		if (rc < 0) {
-			bb_simple_perror_msg_and_die(argv[0]);
-		}
 		if (nerr)
 			exit(EXIT_FAILURE);
 		argv++;
 	}
-
+    /* Load the file contexts configuration and check it. */
+	rc = matchpathcon_init(argv[0]);
+	if (rc < 0) {
+		bb_simple_perror_msg_and_die(argv[0]);
+	}
 	if (input_filename) {
 		ssize_t len;
 		FILE *f = stdin;
