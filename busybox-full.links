@@ -98,6 +98,7 @@
 /bin/lzop
 /bin/lzopcat
 /sbin/man
+/sbin/matchpathcon
 /bin/md5sum
 /bin/mesg
 /bin/mkdir
@@ -145,7 +146,7 @@
 /bin/renice
 /bin/reset
 /bin/resize
-/bin/restorecon
+/sbin/restorecon
 /bin/rev
 /bin/rm
 /bin/rmdir
@@ -155,13 +156,13 @@
 /bin/run-parts
 /bin/rx
 /bin/sed
-/bin/selinuxenabled
+/sbin/selinuxenabled
 /bin/seq
-/bin/sestatus
+/sbin/sestatus
 /sbin/setconsole
-/bin/setenforce
-/bin/setfiles
-/bin/setsebool
+/sbin/setenforce
+/sbin/setfiles
+/sbin/setsebool
 /bin/setserial
 /bin/setsid
 /bin/sh
