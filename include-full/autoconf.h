@@ -2,7 +2,7 @@
  * Automatically generated C config: don't edit
  * Busybox version: 1.22.0-selinux
  */
-#define AUTOCONF_TIMESTAMP "2013-10-19 15:51 +0200"
+#define AUTOCONF_TIMESTAMP "2013-10-20 18:52 +0200"
 
 #define CONFIG_HAVE_DOT_CONFIG 1
 #define ENABLE_HAVE_DOT_CONFIG 1
@@ -5272,10 +5272,14 @@
 #define ENABLE_LOAD_POLICY 0
 #define IF_LOAD_POLICY(...)
 #define IF_NOT_LOAD_POLICY(...) __VA_ARGS__
-#undef CONFIG_MATCHPATHCON
-#define ENABLE_MATCHPATHCON 0
-#define IF_MATCHPATHCON(...)
-#define IF_NOT_MATCHPATHCON(...) __VA_ARGS__
+#define CONFIG_MATCHPATHCON 1
+#define ENABLE_MATCHPATHCON 1
+#ifdef MAKE_SUID
+# define IF_MATCHPATHCON(...) __VA_ARGS__ "CONFIG_MATCHPATHCON"
+#else
+# define IF_MATCHPATHCON(...) __VA_ARGS__
+#endif
+#define IF_NOT_MATCHPATHCON(...)
 #define CONFIG_RESTORECON 1
 #define ENABLE_RESTORECON 1
 #ifdef MAKE_SUID
