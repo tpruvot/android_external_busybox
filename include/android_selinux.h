@@ -5,7 +5,7 @@
 #include <selinux/label.h>
 #include <selinux/android.h>
 
-static struct selabel_handle *bb_sehandle;
+static struct selabel_handle *bb_sehandle = NULL;
 
 /* Set flags controlling operation of matchpathcon_init or matchpathcon. */
 #define MATCHPATHCON_BASEONLY 1 /* Only process the base file_contexts file. */
@@ -39,21 +39,35 @@ static struct selabel_handle *bb_sehandle;
 #define set_matchpathcon_flags(flags) {}
 #define set_matchpathcon_printf(fn) {}
 #define matchpathcon_filespec_eval() {}
-
+#define selinux_file_context_verify(path, n) 0
 
 static int selinux_getenforcemode(int *rc)
 {
-    if (rc) {
-        *rc = security_getenforce();
-        return 0;
-    }
-    return -1;
+	if (rc) {
+		*rc = security_getenforce();
+		return 0;
+	}
+	return -1;
 }
 
-static int matchpathcon_init(char * pathname) {
-    bb_sehandle = selinux_android_file_context_handle();
-    return 0;
+/* FIXME: These stubs do not implement real matchpathcon init yet */
+static int matchpathcon_init(const char * pathname)
+{
+	if (!bb_sehandle) {
+		bb_sehandle = selinux_android_file_context_handle();
+	}
+	return 0;
 }
 
+static int matchpathcon_init_prefix(const char * path, const char* subset)
+{
+	return matchpathcon_init(path);
+}
+
+static int matchpathcon_fini(void)
+{
+	bb_sehandle = NULL;
+	return 0;
+}
 
 #endif /* BB_ANDROID_SELINUX_H */
