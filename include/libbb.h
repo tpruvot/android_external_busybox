@@ -95,7 +95,7 @@
 # include <selinux/selinux.h>
 # include <selinux/context.h>
 #ifdef __BIONIC__
-# include "android_selinux.h"
+# include "android/selinux/android_selinux.h"
 # include <sepol/policydb/flask.h>
 #else
 # include <selinux/flask.h>
