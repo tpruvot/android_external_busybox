@@ -222,8 +222,8 @@ static void message(int where, const char *fmt, ...)
 	msg[0] = '\r';
 	va_start(arguments, fmt);
 	l = 1 + vsnprintf(msg + 1, sizeof(msg) - 2, fmt, arguments);
-	if (l > sizeof(msg) - 1)
-		l = sizeof(msg) - 1;
+	if (l > sizeof(msg) - 2)
+		l = sizeof(msg) - 2;
 	va_end(arguments);
 
 #if ENABLE_FEATURE_INIT_SYSLOG
@@ -1128,7 +1128,7 @@ int init_main(int argc UNUSED_PARAM, char **argv)
 	strncpy(argv[0], "init", strlen(argv[0]));
 	/* Wipe argv[1]-argv[N] so they don't clutter the ps listing */
 	while (*++argv)
-		memset(*argv, 0, strlen(*argv));
+		nuke_str(*argv);
 
 	/* Set up signal handlers */
 	if (!DEBUG_INIT) {

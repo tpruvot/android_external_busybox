@@ -58,16 +58,27 @@
  * http://pubs.opengroup.org/onlinepubs/9699919799/utilities/sed.html
  */
 
+//config:config SED
+//config:	bool "sed"
+//config:	default y
+//config:	help
+//config:	  sed is used to perform text transformations on a file
+//config:	  or input from a pipeline.
+
+//kbuild:lib-$(CONFIG_SED) += sed.o
+
+//applet:IF_SED(APPLET(sed, BB_DIR_BIN, BB_SUID_DROP))
+
 //usage:#define sed_trivial_usage
-//usage:       "[-inr] [-f FILE]... [-e CMD]... [FILE]...\n"
-//usage:       "or: sed [-inr] CMD [FILE]..."
+//usage:       "[-inrE] [-f FILE]... [-e CMD]... [FILE]...\n"
+//usage:       "or: sed [-inrE] CMD [FILE]..."
 //usage:#define sed_full_usage "\n\n"
 //usage:       "	-e CMD	Add CMD to sed commands to be executed"
 //usage:     "\n	-f FILE	Add FILE contents to sed commands to be executed"
 //usage:     "\n	-i[SFX]	Edit files in-place (otherwise sends to stdout)"
 //usage:     "\n		Optionally back files up, appending SFX"
 //usage:     "\n	-n	Suppress automatic printing of pattern space"
-//usage:     "\n	-r	Use extended regex syntax"
+//usage:     "\n	-r,-E	Use extended regex syntax"
 //usage:     "\n"
 //usage:     "\nIf no -e or -f, the first non-option argument is the sed command string."
 //usage:     "\nRemaining arguments are input files (stdin if none)."
@@ -848,40 +859,82 @@ static sed_cmd_t *branch_to(char *label)
 
 static void append(char *s)
 {
-	llist_add_to_end(&G.append_head, xstrdup(s));
+	llist_add_to_end(&G.append_head, s);
 }
 
-static void flush_append(void)
-{
-	char *data;
-
-	/* Output appended lines. */
-	while ((data = (char *)llist_pop(&G.append_head))) {
-		fprintf(G.nonstdout, "%s\n", data);
-		free(data);
-	}
-}
-
-static void add_input_file(FILE *file)
-{
-	G.input_file_list = xrealloc_vector(G.input_file_list, 2, G.input_file_count);
-	G.input_file_list[G.input_file_count++] = file;
-}
-
-/* Get next line of input from G.input_file_list, flushing append buffer and
- * noting if we ran out of files without a newline on the last line we read.
+/* Output line of text. */
+/* Note:
+ * The tricks with NO_EOL_CHAR and last_puts_char are there to emulate gnu sed.
+ * Without them, we had this:
+ * echo -n thingy >z1
+ * echo -n again >z2
+ * >znull
+ * sed "s/i/z/" z1 z2 znull | hexdump -vC
+ * output:
+ * gnu sed 4.1.5:
+ * 00000000  74 68 7a 6e 67 79 0a 61  67 61 7a 6e              |thzngy.agazn|
+ * bbox:
+ * 00000000  74 68 7a 6e 67 79 61 67  61 7a 6e                 |thzngyagazn|
  */
 enum {
 	NO_EOL_CHAR = 1,
 	LAST_IS_NUL = 2,
 };
-static char *get_next_line(char *gets_char)
+static void puts_maybe_newline(char *s, FILE *file, char *last_puts_char, char last_gets_char)
+{
+	char lpc = *last_puts_char;
+
+	/* Need to insert a '\n' between two files because first file's
+	 * last line wasn't terminated? */
+	if (lpc != '\n' && lpc != '\0') {
+		fputc('\n', file);
+		lpc = '\n';
+	}
+	fputs(s, file);
+
+	/* 'x' - just something which is not '\n', '\0' or NO_EOL_CHAR */
+	if (s[0])
+		lpc = 'x';
+
+	/* had trailing '\0' and it was last char of file? */
+	if (last_gets_char == LAST_IS_NUL) {
+		fputc('\0', file);
+		lpc = 'x'; /* */
+	} else
+	/* had trailing '\n' or '\0'? */
+	if (last_gets_char != NO_EOL_CHAR) {
+		fputc(last_gets_char, file);
+		lpc = last_gets_char;
+	}
+
+	if (ferror(file)) {
+		xfunc_error_retval = 4;  /* It's what gnu sed exits with... */
+		bb_error_msg_and_die(bb_msg_write_error);
+	}
+	*last_puts_char = lpc;
+}
+
+static void flush_append(char *last_puts_char, char last_gets_char)
+{
+	char *data;
+
+	/* Output appended lines. */
+	while ((data = (char *)llist_pop(&G.append_head))) {
+		puts_maybe_newline(data, G.nonstdout, last_puts_char, last_gets_char);
+		free(data);
+	}
+}
+
+/* Get next line of input from G.input_file_list, flushing append buffer and
+ * noting if we ran out of files without a newline on the last line we read.
+ */
+static char *get_next_line(char *gets_char, char *last_puts_char, char last_gets_char)
 {
 	char *temp = NULL;
 	int len;
 	char gc;
 
-	flush_append();
+	flush_append(last_puts_char, last_gets_char);
 
 	/* will be returned if last line in the file
 	 * doesn't end with either '\n' or '\0' */
@@ -925,54 +978,6 @@ static char *get_next_line(char *gets_char)
 	return temp;
 }
 
-/* Output line of text. */
-/* Note:
- * The tricks with NO_EOL_CHAR and last_puts_char are there to emulate gnu sed.
- * Without them, we had this:
- * echo -n thingy >z1
- * echo -n again >z2
- * >znull
- * sed "s/i/z/" z1 z2 znull | hexdump -vC
- * output:
- * gnu sed 4.1.5:
- * 00000000  74 68 7a 6e 67 79 0a 61  67 61 7a 6e              |thzngy.agazn|
- * bbox:
- * 00000000  74 68 7a 6e 67 79 61 67  61 7a 6e                 |thzngyagazn|
- */
-static void puts_maybe_newline(char *s, FILE *file, char *last_puts_char, char last_gets_char)
-{
-	char lpc = *last_puts_char;
-
-	/* Need to insert a '\n' between two files because first file's
-	 * last line wasn't terminated? */
-	if (lpc != '\n' && lpc != '\0') {
-		fputc('\n', file);
-		lpc = '\n';
-	}
-	fputs(s, file);
-
-	/* 'x' - just something which is not '\n', '\0' or NO_EOL_CHAR */
-	if (s[0])
-		lpc = 'x';
-
-	/* had trailing '\0' and it was last char of file? */
-	if (last_gets_char == LAST_IS_NUL) {
-		fputc('\0', file);
-		lpc = 'x'; /* */
-	} else
-	/* had trailing '\n' or '\0'? */
-	if (last_gets_char != NO_EOL_CHAR) {
-		fputc(last_gets_char, file);
-		lpc = last_gets_char;
-	}
-
-	if (ferror(file)) {
-		xfunc_error_retval = 4;  /* It's what gnu sed exits with... */
-		bb_error_msg_and_die(bb_msg_write_error);
-	}
-	*last_puts_char = lpc;
-}
-
 #define sed_puts(s, n) (puts_maybe_newline(s, G.nonstdout, &last_puts_char, n))
 
 static int beg_match(sed_cmd_t *sed_cmd, const char *pattern_space)
@@ -995,7 +1000,7 @@ static void process_files(void)
 	int substituted;
 
 	/* Prime the pump */
-	next_line = get_next_line(&next_gets_char);
+	next_line = get_next_line(&next_gets_char, &last_puts_char, '\n' /*last_gets_char*/);
 
 	/* Go through every line in each file */
  again:
@@ -1009,7 +1014,7 @@ static void process_files(void)
 
 	/* Read one line in advance so we can act on the last line,
 	 * the '$' address */
-	next_line = get_next_line(&next_gets_char);
+	next_line = get_next_line(&next_gets_char, &last_puts_char, last_gets_char);
 	linenum++;
 
 	/* For every line, go through all the commands */
@@ -1181,7 +1186,7 @@ static void process_files(void)
 
 		/* Append line to linked list to be printed later */
 		case 'a':
-			append(sed_cmd->string);
+			append(xstrdup(sed_cmd->string));
 			break;
 
 		/* Insert text before this line */
@@ -1203,11 +1208,10 @@ static void process_files(void)
 			rfile = fopen_for_read(sed_cmd->string);
 			if (rfile) {
 				char *line;
-
 				while ((line = xmalloc_fgetline(rfile))
 						!= NULL)
 					append(line);
-				xprint_and_close_file(rfile);
+				fclose(rfile);
 			}
 
 			break;
@@ -1228,7 +1232,7 @@ static void process_files(void)
 				free(pattern_space);
 				pattern_space = next_line;
 				last_gets_char = next_gets_char;
-				next_line = get_next_line(&next_gets_char);
+				next_line = get_next_line(&next_gets_char, &last_puts_char, last_gets_char);
 				substituted = 0;
 				linenum++;
 				break;
@@ -1264,7 +1268,7 @@ static void process_files(void)
 			pattern_space[len] = '\n';
 			strcpy(pattern_space + len+1, next_line);
 			last_gets_char = next_gets_char;
-			next_line = get_next_line(&next_gets_char);
+			next_line = get_next_line(&next_gets_char, &last_puts_char, last_gets_char);
 			linenum++;
 			break;
 		}
@@ -1368,7 +1372,7 @@ static void process_files(void)
 
 	/* Delete and such jump here. */
  discard_line:
-	flush_append();
+	flush_append(&last_puts_char, last_gets_char);
 	free(pattern_space);
 
 	goto again;
@@ -1393,6 +1397,12 @@ static void add_cmd_block(char *cmdstr)
 		cmdstr = eol + 1;
 	} while (eol);
 	free(sv);
+}
+
+static void add_input_file(FILE *file)
+{
+	G.input_file_list = xrealloc_vector(G.input_file_list, 2, G.input_file_count);
+	G.input_file_list[G.input_file_count++] = file;
 }
 
 int sed_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
@@ -1435,15 +1445,21 @@ int sed_main(int argc UNUSED_PARAM, char **argv)
 	IF_LONG_OPTS(applet_long_options = sed_longopts);
 
 	/* -i must be first, to match OPT_in_place definition */
-	opt = getopt32(argv, "i::rne:f:", &opt_i, &opt_e, &opt_f,
+	/* -E is a synonym of -r:
+	 * GNU sed 4.2.1 mentions it in neither --help
+	 * nor manpage, but does recognize it.
+	 */
+	opt = getopt32(argv, "i::rEne:f:", &opt_i, &opt_e, &opt_f,
 			    &G.be_quiet); /* counter for -n */
 	//argc -= optind;
 	argv += optind;
 	if (opt & OPT_in_place) { // -i
 		atexit(cleanup_outname);
 	}
-	if (opt & 0x2) G.regex_type |= REG_EXTENDED; // -r
-	//if (opt & 0x4) G.be_quiet++; // -n
+	if (opt & (2|4))
+		G.regex_type |= REG_EXTENDED; // -r or -E
+	//if (opt & 8)
+	//	G.be_quiet++; // -n (implemented with a counter instead)
 	while (opt_e) { // -e
 		add_cmd_block(llist_pop(&opt_e));
 	}
@@ -1458,7 +1474,7 @@ int sed_main(int argc UNUSED_PARAM, char **argv)
 		fclose(cmdfile);
 	}
 	/* if we didn't get a pattern from -e or -f, use argv[0] */
-	if (!(opt & 0x18)) {
+	if (!(opt & 0x30)) {
 		if (!*argv)
 			bb_show_usage();
 		add_cmd_block(*argv++);
