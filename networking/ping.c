@@ -169,7 +169,7 @@ create_icmp_socket(void)
 		sock = socket(AF_INET, SOCK_RAW, 1); /* 1 == ICMP */
 	if (sock < 0) {
 		if (errno != EPERM)
-			bb_perror_msg_and_die(bb_msg_can_not_create_raw_socket);
+			bb_perror_msg_and_die("%s", bb_msg_can_not_create_raw_socket);
 #if defined(__linux__) || defined(__APPLE__)
 		/* We don't have root privileges.  Try SOCK_DGRAM instead.
 		 * Linux needs net.ipv4.ping_group_range for this to work.
@@ -183,7 +183,7 @@ create_icmp_socket(void)
 			sock = socket(AF_INET, SOCK_DGRAM, 1); /* 1 == ICMP */
 		if (sock < 0)
 #endif
-		bb_error_msg_and_die(bb_msg_perm_denied_are_you_root);
+		bb_error_msg_and_die("%s", bb_msg_perm_denied_are_you_root);
 	}
 
 	xmove_fd(sock, pingsock);
