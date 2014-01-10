@@ -8,21 +8,31 @@
  * Licensed under GPLv2 or later, see file LICENSE in this source tree.
  */
 
+//config:config FSTRIM
+//config:	bool "fstrim"
+//config:	default y
+//config:	select PLATFORM_LINUX
+//config:	help
+//config:	  Discard unused blocks on a mounted filesystem.
+
+//applet:IF_FSTRIM(APPLET(fstrim, BB_DIR_SBIN, BB_SUID_DROP))
+
+//kbuild:lib-$(CONFIG_FSTRIM) += fstrim.o
+
 //usage:#define fstrim_trivial_usage
-//usage:       "[Options] <mountpoint>"
+//usage:       "[OPTIONS] MOUNTPOINT"
 //usage:#define fstrim_full_usage "\n\n"
-//usage:       "Options:"
 //usage:	IF_LONG_OPTS(
-//usage:     "\n	-o,--offset=offset	offset in bytes to discard from"
-//usage:     "\n	-l,--length=length	length of bytes to discard from the offset"
-//usage:     "\n	-m,--minimum=minimum	minimum extent length to discard"
-//usage:     "\n	-v,--verbose		print number of discarded bytes"
+//usage:       "	-o,--offset=OFFSET	Offset in bytes to discard from"
+//usage:     "\n	-l,--length=LEN		Bytes to discard"
+//usage:     "\n	-m,--minimum=MIN	Minimum extent length"
+//usage:     "\n	-v,--verbose		Print number of discarded bytes"
 //usage:	)
 //usage:	IF_NOT_LONG_OPTS(
-//usage:     "\n	-o offset	offset in bytes to discard from"
-//usage:     "\n	-l length	length of bytes to discard from the offset"
-//usage:     "\n	-m minimum	minimum extent length to discard"
-//usage:     "\n	-v,		print number of discarded bytes"
+//usage:       "	-o OFFSET	Offset in bytes to discard from"
+//usage:     "\n	-l LEN		Bytes to discard"
+//usage:     "\n	-m MIN		Minimum extent length"
+//usage:     "\n	-v,		Print number of discarded bytes"
 //usage:	)
 
 #include "libbb.h"
@@ -60,9 +70,7 @@ int fstrim_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
 int fstrim_main(int argc UNUSED_PARAM, char **argv)
 {
 	struct fstrim_range range;
-	char *arg_o;
-	char *arg_l;
-	char *arg_m;
+	char *arg_o, *arg_l, *arg_m, *mp;
 	unsigned opts;
 	int fd;
 
@@ -83,32 +91,29 @@ int fstrim_main(int argc UNUSED_PARAM, char **argv)
 	applet_long_options = getopt_longopts;
 #endif
 
-	opt_complementary = "=1";
+	opt_complementary = "=1"; /* exactly one non-option arg: the mountpoint */
 	opts = getopt32(argv, "o:l:m:v", &arg_o, &arg_l, &arg_m);
 
 	memset(&range, 0, sizeof(range));
 	range.len = ULLONG_MAX;
 
-	if (opts & OPT_o) {
+	if (opts & OPT_o)
 		range.start = xatoull_sfx(arg_o, fstrim_sfx);
-	}
-
-	if (opts & OPT_l) {
+	if (opts & OPT_l)
 		range.len = xatoull_sfx(arg_l, fstrim_sfx);
-	}
-
-	if (opts & OPT_m) {
+	if (opts & OPT_m)
 		range.minlen = xatoull_sfx(arg_m, fstrim_sfx);
-	}
 
-	if (find_block_device(argv[optind])) {
-		fd = xopen_nonblocking(argv[optind]);
+	mp = argv[optind];
+	if (find_block_device(mp)) {
+		fd = xopen_nonblocking(mp);
 		xioctl(fd, FITRIM, &range);
-		close(fd);
+		if (ENABLE_FEATURE_CLEAN_UP)
+			close(fd);
 
 		if (opts & OPT_v)
-			printf("%s: %llu bytes was trimmed\n", argv[optind], range.len);
+			printf("%s: %llu bytes trimmed\n", mp, (unsigned long long)range.len);
+		return EXIT_SUCCESS;
 	}
-
-	return EXIT_SUCCESS;
+	return EXIT_FAILURE;
 }
