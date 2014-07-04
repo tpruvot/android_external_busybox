@@ -3,7 +3,7 @@ BB_PATH := $(LOCAL_PATH)
 
 # Bionic Branches Switches (GB/ICS/L)
 BIONIC_ICS := true
-BIONIC_L := false
+BIONIC_L := true
 
 # Make a static library for regex.
 include $(CLEAR_VARS)
