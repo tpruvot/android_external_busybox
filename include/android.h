@@ -80,4 +80,13 @@ typedef int socklen_t;
 #define wait3(status, options, rusage) wait4(-1, status, options, rusage)
 #endif
 
+/* Copy N bytes of SRC to DEST, return pointer to bytes after the
+   last written byte. */
+#ifndef mempcpy
+static void *mempcpy(void *dest, const void *src, size_t n)
+{
+	return (char *) memcpy (dest, src, n) + n;
+}
+#endif
+
 #endif
