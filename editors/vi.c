@@ -212,6 +212,10 @@
 
 #endif
 
+#ifdef __BIONIC__
+//#define BIONIC_UTF8_CURSOR
+#define BIONIC_UTF8_MBLEN
+#endif
 
 enum {
 	MAX_TABSTOP = 32, // sanity limit
@@ -497,6 +501,18 @@ static int next_tabstop(int);
 static void sync_cursor(char *, int *, int *);	// synchronize the screen cursor to dot
 static char *begin_line(char *);	// return pointer to cur line B-o-l
 static char *end_line(char *);	// return pointer to cur line E-o-l
+#ifdef BIONIC_UTF8_MBLEN
+static int utf_mblen(char *);
+#endif
+#ifdef BIONIC_UTF8_CURSOR
+static char *utf_end_line(char *);	// return pointer to cur line E-o-l - utf 8 hidden parts
+static size_t utf_extras(char *);	// count utf 8 hidden chars before cursor in the line
+static size_t utf_strlen(char *p, char *to);	// UTF-8 strlen (count chars)
+#else
+#define utf_end_line(p) end_line(p)
+#define utf_extras(p) (0)
+#define utf_strlen(p,t) strnlen(p,(t-p))
+#endif
 static char *prev_line(char *);	// return pointer to prev line B-o-l
 static char *next_line(char *);	// return pointer to next line B-o-l
 static char *end_screen(void);	// get pointer to last char on screen
@@ -1595,6 +1611,9 @@ static NOINLINE void sync_cursor(char *d, int *row, int *col)
 				end_scr = next_line(end_scr);
 				end_scr = end_line(end_scr);
 			}
+#ifdef BIONIC_UTF8_CURSOR
+			end_scr = utf_end_line(end_scr);
+#endif
 		}
 	}
 	// "d" is on screen- find out which row
@@ -1619,7 +1638,10 @@ static NOINLINE void sync_cursor(char *d, int *row, int *col)
 		} else if ((unsigned char)*tp < ' ' || *tp == 0x7f) {
 			co++; // display as ^X, use 2 columns
 		}
-		co++;
+#ifdef BIONIC_UTF8_CURSOR
+		else if ((*tp & 0xC0) != 0x80)
+#endif
+			co++;
 		tp++;
 	}
 
@@ -1675,6 +1697,48 @@ static char *end_line(char *p) // return pointer to NL of cur line
 	return p;
 }
 
+#ifdef BIONIC_UTF8_MBLEN
+static int utf_mblen(char *s) // Char len in bytes
+{
+	int buf_mb_len = 1;
+	if (s == NULL) {
+		return -1;
+	}
+
+	if ((*s & 0xF0) == 0xF0)
+		buf_mb_len = 4; // start of 4-char utf series
+	else if ((*s & 0xF0) == 0xE0)
+		buf_mb_len = 3; // start of 3-char
+	else if ((*s & 0xF0) == 0xC0)
+		buf_mb_len = 2; // start of 2-char
+	else if ((*s & 0xC0) == 0x80)
+		buf_mb_len = 0; // utf hidden part
+
+	return buf_mb_len;
+}
+#endif
+#ifdef BIONIC_UTF8_CURSOR
+static size_t utf_strlen(char *p, char *to) // UTF-8 strlen (count chars)
+{
+	int len = 0;
+	while (*p && p < to)
+		len += (*p++ & 0xC0) != 0x80;
+	return len;
+}
+
+static size_t utf_extras(char *p) // hidden chars before cursor in line
+{
+	char *bl = begin_line(p);
+	return (p - bl) - utf_strlen(bl, p);
+}
+
+static char *utf_end_line(char *p) // return pointer to NL of cur line (- Utf chars)
+{
+	char *el = end_line(p);
+	return el - utf_extras(p);
+}
+#endif
+
 static char *dollar_line(char *p) // return pointer to just before NL line
 {
 	p = end_line(p);
@@ -1711,7 +1775,7 @@ static char *end_screen(void)
 	q = screenbegin;
 	for (cnt = 0; cnt < rows - 2; cnt++)
 		q = next_line(q);
-	q = end_line(q);
+	q = utf_end_line(q);
 	return q;
 }
 
@@ -1788,7 +1852,10 @@ static char *move_to_col(char *p, int l)
 		} else if (*p < ' ' || *p == 127) {
 			co++; // display as ^X, use 2 columns
 		}
-		co++;
+#ifdef BIONIC_UTF8_CURSOR
+		else if ((*p & 0xC0) != 0x80)
+#endif
+			co++; // not an utf-8 part
 		p++;
 	}
 	return p;
@@ -1986,6 +2053,19 @@ static char *char_search(char *p, const char *pat, int dir, int range)
 
 static char *char_insert(char *p, char c, int undo) // insert the char c at 'p'
 {
+#ifdef BIONIC_UTF8_MBLEN
+	// restore ptr to real data
+	size_t hutf = 0;
+	char * bl = begin_line(p);
+	while(p && *p && *p != '\n' && utf_mblen(p) == 0) {
+		p++; // be sure we are not inside an utf char
+		hutf++;
+	}
+	//hutf = utf_extras(p);
+	//p += hutf;
+	status_line_bold("%u %u (%x)", p - bl, hutf, (0xFF & p[0]));
+#endif
+
 	if (c == 22) {		// Is this an ctrl-V?
 		p += stupid_insert(p, '^');	// use ^ to indicate literal next
 		refresh(FALSE);	// show the ^
@@ -2027,14 +2107,11 @@ static char *char_insert(char *p, char c, int undo) // insert the char c at 'p'
 	} else {
 #if ENABLE_FEATURE_VI_SETOPTS
 		// insert a char into text[]
-		char *sp;		// "save p"
+		char * sp = p;	// remember addr of insert
 #endif
-
 		if (c == 13)
 			c = '\n';	// translate \r to \n
-#if ENABLE_FEATURE_VI_SETOPTS
-		sp = p;			// remember addr of insert
-#endif
+
 #if ENABLE_FEATURE_VI_UNDO
 # if ENABLE_FEATURE_VI_UNDO_QUEUE
 		if (c == '\n')
@@ -2080,6 +2157,10 @@ static char *char_insert(char *p, char c, int undo) // insert the char c at 'p'
 		}
 #endif
 	}
+
+#ifdef BIONIC_UTF8_MBLEN
+//	p -= hutf;
+#endif
 	return p;
 }
 
@@ -3703,7 +3784,7 @@ static void do_cmd(int c)
 	case '$':			// $- goto end of line
 	case KEYCODE_END:		// Cursor Key End
 		for (;;) {
-			dot = end_line(dot);
+			dot = utf_end_line(dot);
 			if (--cmdcnt <= 0)
 				break;
 			dot_next();
