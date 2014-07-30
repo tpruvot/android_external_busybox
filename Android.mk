@@ -20,7 +20,7 @@ LOCAL_C_INCLUDES := $(BB_PATH)/android/librpc
 LOCAL_MODULE := libuclibcrpc
 LOCAL_CFLAGS += -fno-strict-aliasing
 ifeq ($(BIONIC_L),true)
-LOCAL_CFLAGS += -DBIONIC_L
+LOCAL_CFLAGS += -DBIONIC_ICS -DBIONIC_L
 endif
 include $(BUILD_STATIC_LIBRARY)
 
@@ -82,34 +82,16 @@ BUSYBOX_SRC_FILES = \
 	android/libc/pty.c \
 	android/android.c
 
-ifeq ($(TARGET_ARCH),arm)
-    BUSYBOX_SRC_FILES += \
-	android/libc/arch-arm/syscalls/adjtimex.S \
-	android/libc/arch-arm/syscalls/getsid.S \
-	android/libc/arch-arm/syscalls/stime.S \
-	android/libc/arch-arm/syscalls/swapon.S \
-	android/libc/arch-arm/syscalls/swapoff.S \
-	android/libc/arch-arm/syscalls/sysinfo.S
+BUSYBOX_ASM_FILES := adjtimex.S stime.S
+ifneq ($(BIONIC_L),true)
+    BUSYBOX_ASM_FILES += getsid.S swapon.S swapoff.S sysinfo.S
 endif
 
-ifeq ($(TARGET_ARCH),x86)
+ifneq ($(filter arm x86 mips,$(TARGET_ARCH)),)
     BUSYBOX_SRC_FILES += \
-	android/libc/arch-x86/syscalls/adjtimex.S \
-	android/libc/arch-x86/syscalls/getsid.S \
-	android/libc/arch-x86/syscalls/stime.S \
-	android/libc/arch-x86/syscalls/swapon.S \
-	android/libc/arch-x86/syscalls/swapoff.S \
-	android/libc/arch-x86/syscalls/sysinfo.S
-endif
-
-ifeq ($(TARGET_ARCH),mips)
-    BUSYBOX_SRC_FILES += \
-	android/libc/arch-mips/syscalls/adjtimex.S \
-	android/libc/arch-mips/syscalls/getsid.S \
-	android/libc/arch-mips/syscalls/stime.S \
-	android/libc/arch-mips/syscalls/swapon.S \
-	android/libc/arch-mips/syscalls/swapoff.S \
-	android/libc/arch-mips/syscalls/sysinfo.S
+        $(addprefix android/libc/arch-$(TARGET_ARCH)/syscalls/,$(BUSYBOX_ASM_FILES))
+else
+    $(error $(TARGET_ARCH) is not supported)
 endif
 
 BUSYBOX_C_INCLUDES = \
@@ -140,7 +122,7 @@ ifeq ($(BIONIC_ICS),true)
 endif
 
 ifeq ($(BIONIC_L),true)
-    BUSYBOX_CFLAGS += -DBIONIC_L
+    BUSYBOX_CFLAGS += -DBIONIC_ICS -DBIONIC_L
 endif
 
 
