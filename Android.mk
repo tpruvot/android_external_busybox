@@ -116,13 +116,15 @@ BUSYBOX_CFLAGS = \
 	-D'CONFIG_DEFAULT_MODULES_DIR="$(KERNEL_MODULES_DIR)"' \
 	-D'BB_VER="$(strip $(shell $(SUBMAKE) kernelversion)) $(BUSYBOX_SUFFIX)"' -DBB_BT=AUTOCONF_TIMESTAMP
 
-# to handle differences in ICS/JB (ipv6)
-ifeq ($(BIONIC_ICS),true)
-    BUSYBOX_CFLAGS += -DBIONIC_ICS
+ifeq ($(BIONIC_L),true)
+    BUSYBOX_CFLAGS += -DBIONIC_L
+    BUSYBOX_AFLAGS += -DBIONIC_L
+    # include changes for ICS/JB/KK
+    BIONIC_ICS := true
 endif
 
-ifeq ($(BIONIC_L),true)
-    BUSYBOX_CFLAGS += -DBIONIC_ICS -DBIONIC_L
+ifeq ($(BIONIC_ICS),true)
+    BUSYBOX_CFLAGS += -DBIONIC_ICS
 endif
 
 
@@ -141,6 +143,7 @@ LOCAL_CFLAGS += \
   -Dgetmntent=busybox_getmntent \
   -Dgetmntent_r=busybox_getmntent_r \
   -Dgenerate_uuid=busybox_generate_uuid
+LOCAL_ASFLAGS := $(BUSYBOX_AFLAGS)
 LOCAL_MODULE := libbusybox
 LOCAL_MODULE_TAGS := eng debug
 LOCAL_STATIC_LIBRARIES := libcutils libc libm libselinux
@@ -162,6 +165,7 @@ endif
 LOCAL_C_INCLUDES := $(bb_gen)/full/include $(BUSYBOX_C_INCLUDES)
 LOCAL_CFLAGS := $(BUSYBOX_CFLAGS)
 LOCAL_LDFLAGS += -Wl,--no-fatal-warnings
+LOCAL_ASFLAGS := $(BUSYBOX_AFLAGS)
 LOCAL_MODULE := busybox
 LOCAL_MODULE_TAGS := eng debug
 LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
@@ -206,6 +210,7 @@ LOCAL_CFLAGS += \
   -Dgetmntent=busybox_getmntent \
   -Dgetmntent_r=busybox_getmntent_r \
   -Dgenerate_uuid=busybox_generate_uuid
+LOCAL_ASFLAGS := $(BUSYBOX_AFLAGS)
 LOCAL_LDFLAGS += -Wl,--no-fatal-warnings
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_MODULE := static_busybox
