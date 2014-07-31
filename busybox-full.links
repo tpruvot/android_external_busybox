@@ -2,6 +2,7 @@
 /bin/[[
 /sbin/adjtimex
 /sbin/arp
+/sbin/arping
 /bin/ash
 /bin/awk
 /bin/base64
@@ -51,6 +52,7 @@
 /bin/expand
 /bin/expr
 /bin/false
+/sbin/fatattr
 /sbin/fbsplash
 /sbin/fdisk
 /bin/fgconsole
@@ -138,6 +140,7 @@
 /bin/pgrep
 /bin/pidof
 /bin/ping
+/bin/ping6
 /bin/pipe_progress
 /bin/pkill
 /bin/pmap
@@ -180,6 +183,8 @@
 /bin/sha256sum
 /bin/sha3sum
 /bin/sha512sum
+/bin/script
+/bin/scriptreplay
 /bin/sleep
 /bin/smemcap
 /bin/sort
@@ -231,6 +236,7 @@
 /bin/wget
 /bin/which
 /bin/whoami
+/bin/whois
 /bin/xargs
 /bin/xz
 /bin/xzcat
