@@ -98,16 +98,18 @@
 //config:	  Enables "-N" command.
 
 //usage:#define less_trivial_usage
-//usage:       "[-E" IF_FEATURE_LESS_FLAGS("Mm") "Nh~I?] [FILE]..."
+//usage:       "[-E" IF_FEATURE_LESS_REGEXP("I")IF_FEATURE_LESS_FLAGS("Mm") "Nh~] [FILE]..."
 //usage:#define less_full_usage "\n\n"
 //usage:       "View FILE (or stdin) one screenful at a time\n"
 //usage:     "\n	-E	Quit once the end of a file is reached"
+//usage:	IF_FEATURE_LESS_REGEXP(
+//usage:     "\n	-I	Ignore case in all searches"
+//usage:	)
 //usage:	IF_FEATURE_LESS_FLAGS(
 //usage:     "\n	-M,-m	Display status line with line numbers"
 //usage:     "\n		and percentage through the file"
 //usage:	)
 //usage:     "\n	-N	Prefix line number to each line"
-//usage:     "\n	-I	Ignore case in all searches"
 //usage:     "\n	-~	Suppress ~s displayed past EOF"
 
 #include <sched.h>  /* sched_yield() */
@@ -402,6 +404,9 @@ static void fill_match_lines(unsigned pos);
  * last_line_pos - screen line position of next char to be read
  *      (takes into account tabs and backspaces)
  * eof_error - < 0 error, == 0 EOF, > 0 not EOF/error
+ *
+ * "git log -p | less -m" on the kernel git tree is a good test for EAGAINs,
+ * "/search on very long input" and "reaching max line count" corner cases.
  */
 static void read_lines(void)
 {
@@ -412,8 +417,12 @@ static void read_lines(void)
 #if ENABLE_FEATURE_LESS_REGEXP
 	unsigned old_max_fline = max_fline;
 	time_t last_time = 0;
-	unsigned seconds_p1 = 3; /* seconds_to_loop + 1 */
+	int had_progress = 2;
 #endif
+
+	/* (careful: max_fline can be -1) */
+	if (max_fline + 1 > MAXLINES)
+		return;
 
 	if (option_mask32 & FLAG_N)
 		w -= 8;
@@ -439,6 +448,7 @@ static void read_lines(void)
 			char c;
 			/* if no unprocessed chars left, eat more */
 			if (readpos >= readeof) {
+				errno = 0;
 				ndelay_on(0);
 				eof_error = safe_read(STDIN_FILENO, readbuf, sizeof(readbuf));
 				ndelay_off(0);
@@ -446,6 +456,7 @@ static void read_lines(void)
 				readeof = eof_error;
 				if (eof_error <= 0)
 					goto reached_eof;
+				IF_FEATURE_LESS_REGEXP(had_progress = 1;)
 			}
 			c = readbuf[readpos];
 			/* backspace? [needed for manpages] */
@@ -517,31 +528,23 @@ static void read_lines(void)
 #endif
 		}
 		if (eof_error <= 0) {
-			if (eof_error < 0) {
-				if (errno == EAGAIN) {
-					/* not yet eof or error, reset flag (or else
-					 * we will hog CPU - select() will return
-					 * immediately */
-					eof_error = 1;
-				} else {
-					print_statusline(bb_msg_read_error);
-				}
-			}
 #if !ENABLE_FEATURE_LESS_REGEXP
 			break;
 #else
 			if (wanted_match < num_matches) {
 				break;
-			} else { /* goto_match called us */
+			} /* else: goto_match() called us */
+			if (errno == EAGAIN) {
 				time_t t = time(NULL);
 				if (t != last_time) {
 					last_time = t;
-					if (--seconds_p1 == 0)
+					if (--had_progress < 0)
 						break;
 				}
 				sched_yield();
-				goto again0; /* go loop again (max 2 seconds) */
+				goto again0;
 			}
+			break;
 #endif
 		}
 		max_fline++;
@@ -549,6 +552,15 @@ static void read_lines(void)
 		p = current_line;
 		last_line_pos = 0;
 	} /* end of "read lines until we reach cur_fline" loop */
+
+	if (eof_error < 0) {
+		if (errno == EAGAIN) {
+			eof_error = 1;
+		} else {
+			print_statusline(bb_msg_read_error);
+		}
+	}
+
 	fill_match_lines(old_max_fline);
 #if ENABLE_FEATURE_LESS_REGEXP
 	/* prevent us from being stuck in search for a match */
@@ -1613,10 +1625,13 @@ int less_main(int argc, char **argv)
 
 	INIT_G();
 
-	/* TODO: -x: do not interpret backspace, -xx: tab also */
-	/* -xxx: newline also */
-	/* -w N: assume width N (-xxx -w 32: hex viewer of sorts) */
-	getopt32(argv, "EMmN~I" IF_FEATURE_LESS_DASHCMD("S"));
+	/* TODO: -x: do not interpret backspace, -xx: tab also
+	 * -xxx: newline also
+	 * -w N: assume width N (-xxx -w 32: hex viewer of sorts)
+	 * -s: condense many empty lines to one
+	 *     (used by some setups for manpage display)
+	 */
+	getopt32(argv, "EMmN~I" IF_FEATURE_LESS_DASHCMD("S") /*ignored:*/"s");
 	argc -= optind;
 	argv += optind;
 	num_files = argc;

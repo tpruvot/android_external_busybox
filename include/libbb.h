@@ -363,6 +363,8 @@ enum {	/* DO NOT CHANGE THESE VALUES!  cp.c, mv.c, install.c depend on them. */
 	FILEUTILS_SET_SECURITY_CONTEXT = 1 << 10,
 #endif
 	FILEUTILS_IGNORE_CHMOD_ERR = 1 << 11,
+	/* -v */
+	FILEUTILS_VERBOSE         = (1 << 12) * ENABLE_FEATURE_VERBOSE,
 };
 #define FILEUTILS_CP_OPTSTR "pdRfilsLH" IF_SELINUX("c")
 extern int remove_file(const char *path, int flags) FAST_FUNC;
@@ -679,6 +681,8 @@ char *xstrndup(const char *s, int n) FAST_FUNC RETURNS_MALLOC;
 void overlapping_strcpy(char *dst, const char *src) FAST_FUNC;
 char *safe_strncpy(char *dst, const char *src, size_t size) FAST_FUNC;
 char *strncpy_IFNAMSIZ(char *dst, const char *src) FAST_FUNC;
+unsigned count_strstr(const char *str, const char *sub) FAST_FUNC;
+char *xmalloc_substitute_string(const char *src, int count, const char *sub, const char *repl) FAST_FUNC;
 /* Guaranteed to NOT be a macro (smallest code). Saves nearly 2k on uclibc.
  * But potentially slow, don't use in one-billion-times loops */
 int bb_putchar(int ch) FAST_FUNC;
@@ -755,6 +759,15 @@ extern void *xmalloc_read(int fd, size_t *maxsz_p) FAST_FUNC RETURNS_MALLOC;
 extern void *xmalloc_open_read_close(const char *filename, size_t *maxsz_p) FAST_FUNC RETURNS_MALLOC;
 /* Never returns NULL */
 extern void *xmalloc_xopen_read_close(const char *filename, size_t *maxsz_p) FAST_FUNC RETURNS_MALLOC;
+
+#if defined ARG_MAX
+# define bb_arg_max() ((unsigned)ARG_MAX)
+#elif defined _SC_ARG_MAX
+unsigned bb_arg_max(void) FAST_FUNC;
+#else
+# define bb_arg_max() ((unsigned)(32 * 1024))
+#endif
+unsigned bb_clk_tck(void) FAST_FUNC;
 
 #define SEAMLESS_COMPRESSION (0 \
  || ENABLE_FEATURE_SEAMLESS_XZ \
@@ -939,9 +952,9 @@ void FAST_FUNC update_utmp(pid_t pid, int new_type, const char *tty_name, const 
 #endif
 
 
-int execable_file(const char *name) FAST_FUNC;
-char *find_execable(const char *filename, char **PATHp) FAST_FUNC;
-int exists_execable(const char *filename) FAST_FUNC;
+int file_is_executable(const char *name) FAST_FUNC;
+char *find_executable(const char *filename, char **PATHp) FAST_FUNC;
+int executable_exists(const char *filename) FAST_FUNC;
 
 /* BB_EXECxx always execs (it's not doing NOFORK/NOEXEC stuff),
  * but it may exec busybox and call applet instead of searching PATH.
@@ -1101,6 +1114,7 @@ enum {
 	LOGMODE_BOTH = LOGMODE_SYSLOG + LOGMODE_STDIO,
 };
 extern const char *msg_eol;
+extern smallint syslog_level;
 extern smallint logmode;
 extern int die_sleep;
 extern uint8_t xfunc_error_retval;
@@ -1980,6 +1994,141 @@ static ALWAYS_INLINE unsigned char bb_ascii_tolower(unsigned char a)
 /* NB: must not treat EOF as isgraph or isprint */
 #define isgraph_asciionly(a) ((unsigned)((a) - 0x21) <= 0x7e - 0x21)
 #define isprint_asciionly(a) ((unsigned)((a) - 0x20) <= 0x7e - 0x20)
+
+
+/* Simple unit-testing framework */
+
+typedef void (*bbunit_testfunc)(void);
+
+struct bbunit_listelem {
+	struct bbunit_listelem* next;
+	const char* name;
+	bbunit_testfunc testfunc;
+};
+
+void bbunit_registertest(struct bbunit_listelem* test);
+void bbunit_settestfailed(void);
+
+#define BBUNIT_DEFINE_TEST(NAME) \
+	static void bbunit_##NAME##_test(void); \
+	static struct bbunit_listelem bbunit_##NAME##_elem = { \
+		.name = #NAME, \
+		.testfunc = bbunit_##NAME##_test, \
+	}; \
+	static void INIT_FUNC bbunit_##NAME##_register(void) \
+	{ \
+		bbunit_registertest(&bbunit_##NAME##_elem); \
+	} \
+	static void bbunit_##NAME##_test(void)
+
+/*
+ * Both 'goto bbunit_end' and 'break' are here only to get rid
+ * of compiler warnings.
+ */
+#define BBUNIT_ENDTEST \
+	do { \
+		goto bbunit_end; \
+	bbunit_end: \
+		break; \
+	} while (0)
+
+#define BBUNIT_PRINTASSERTFAIL \
+	do { \
+		bb_error_msg( \
+			"[ERROR] Assertion failed in file %s, line %d", \
+			__FILE__, __LINE__); \
+	} while (0)
+
+#define BBUNIT_ASSERTION_FAILED \
+	do { \
+		bbunit_settestfailed(); \
+		goto bbunit_end; \
+	} while (0)
+
+/*
+ * Assertions.
+ * For now we only offer assertions which cause tests to fail
+ * immediately. In the future 'expects' might be added too -
+ * similar to those offered by the gtest framework.
+ */
+#define BBUNIT_ASSERT_EQ(EXPECTED, ACTUAL) \
+	do { \
+		if ((EXPECTED) != (ACTUAL)) { \
+			BBUNIT_PRINTASSERTFAIL; \
+			bb_error_msg("[ERROR] '%s' isn't equal to '%s'", \
+						#EXPECTED, #ACTUAL); \
+			BBUNIT_ASSERTION_FAILED; \
+		} \
+	} while (0)
+
+#define BBUNIT_ASSERT_NOTEQ(EXPECTED, ACTUAL) \
+	do { \
+		if ((EXPECTED) == (ACTUAL)) { \
+			BBUNIT_PRINTASSERTFAIL; \
+			bb_error_msg("[ERROR] '%s' is equal to '%s'", \
+						#EXPECTED, #ACTUAL); \
+			BBUNIT_ASSERTION_FAILED; \
+		} \
+	} while (0)
+
+#define BBUNIT_ASSERT_NOTNULL(PTR) \
+	do { \
+		if ((PTR) == NULL) { \
+			BBUNIT_PRINTASSERTFAIL; \
+			bb_error_msg("[ERROR] '%s' is NULL!", #PTR); \
+			BBUNIT_ASSERTION_FAILED; \
+		} \
+	} while (0)
+
+#define BBUNIT_ASSERT_NULL(PTR) \
+	do { \
+		if ((PTR) != NULL) { \
+			BBUNIT_PRINTASSERTFAIL; \
+			bb_error_msg("[ERROR] '%s' is not NULL!", #PTR); \
+			BBUNIT_ASSERTION_FAILED; \
+		} \
+	} while (0)
+
+#define BBUNIT_ASSERT_FALSE(STATEMENT) \
+	do { \
+		if ((STATEMENT)) { \
+			BBUNIT_PRINTASSERTFAIL; \
+			bb_error_msg("[ERROR] Statement '%s' evaluated to true!", \
+								#STATEMENT); \
+			BBUNIT_ASSERTION_FAILED; \
+		} \
+	} while (0)
+
+#define BBUNIT_ASSERT_TRUE(STATEMENT) \
+	do { \
+		if (!(STATEMENT)) { \
+			BBUNIT_PRINTASSERTFAIL; \
+			bb_error_msg("[ERROR] Statement '%s' evaluated to false!", \
+					#STATEMENT); \
+			BBUNIT_ASSERTION_FAILED; \
+		} \
+	} while (0)
+
+#define BBUNIT_ASSERT_STREQ(STR1, STR2) \
+	do { \
+		if (strcmp(STR1, STR2) != 0) { \
+			BBUNIT_PRINTASSERTFAIL; \
+			bb_error_msg("[ERROR] Strings '%s' and '%s' " \
+					"are not the same", STR1, STR2); \
+			BBUNIT_ASSERTION_FAILED; \
+		} \
+	} while (0)
+
+#define BBUNIT_ASSERT_STRNOTEQ(STR1, STR2) \
+	do { \
+		if (strcmp(STR1, STR2) == 0) { \
+			BBUNIT_PRINTASSERTFAIL; \
+			bb_error_msg("[ERROR] Strings '%s' and '%s' " \
+					"are the same, but were " \
+					"expected to differ", STR1, STR2); \
+			BBUNIT_ASSERTION_FAILED; \
+		} \
+	} while (0)
 
 
 POP_SAVED_FUNCTION_VISIBILITY

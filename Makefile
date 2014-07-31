@@ -1,7 +1,7 @@
 VERSION = 1
-PATCHLEVEL = 22
-SUBLEVEL = 1
-EXTRAVERSION =
+PATCHLEVEL = 23
+SUBLEVEL = 0
+EXTRAVERSION = .git
 NAME = bionic
 
 # prevent local tree builds in bionic,

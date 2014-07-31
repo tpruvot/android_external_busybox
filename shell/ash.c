@@ -41,6 +41,7 @@
 #include <setjmp.h>
 #include <fnmatch.h>
 #include <sys/times.h>
+#include <sys/utsname.h> /* for setting $HOSTNAME */
 
 #include "busybox.h" /* for applet_names */
 #include "unicode.h"
@@ -8960,6 +8961,9 @@ mklocal(char *name)
 			vp->flags |= VSTRFIXED|VTEXTFIXED;
 			if (eq)
 				setvareq(name, 0);
+			else
+				/* "local VAR" unsets VAR: */
+				setvar(name, NULL, 0);
 		}
 	}
 	lvp->vp = vp;
@@ -12755,7 +12759,7 @@ timescmd(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 	const unsigned char *p;
 	struct tms buf;
 
-	clk_tck = sysconf(_SC_CLK_TCK);
+	clk_tck = bb_clk_tck();
 	times(&buf);
 
 	p = timescmd_str;
@@ -13015,6 +13019,11 @@ init(void)
 #if ENABLE_ASH_BASH_COMPAT
 		p = lookupvar("SHLVL");
 		setvar("SHLVL", utoa((p ? atoi(p) : 0) + 1), VEXPORT);
+		if (!lookupvar("HOSTNAME")) {
+			struct utsname uts;
+			uname(&uts);
+			setvar2("HOSTNAME", uts.nodename);
+		}
 #endif
 		p = lookupvar("PWD");
 		if (p) {
