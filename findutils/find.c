@@ -679,7 +679,7 @@ ACTF(exec)
 		ap->file_len += strlen(fileName) + sizeof(char*) + 1;
 		/* If we have lots of files already, exec the command */
 		rc = 1;
-		if (ap->file_len >= G.max_argv_len)
+		if (ap->file_len >= (int) G.max_argv_len)
 			rc = do_exec(ap, NULL);
 		return rc;
 	}
