@@ -74,6 +74,7 @@
 /bin/getenforce
 /bin/getopt
 /bin/getsebool
+/sbin/getty
 /bin/grep
 /bin/groups
 /bin/gunzip
@@ -95,6 +96,7 @@
 /sbin/killall5
 /bin/less
 /bin/ln
+/bin/login
 /sbin/losetup
 /bin/ls
 /bin/lsattr
