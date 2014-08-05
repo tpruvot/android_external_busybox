@@ -81,6 +81,7 @@ SUBMAKE := make -s -C $(BB_PATH) CC=$(CC)
 
 BUSYBOX_SRC_FILES = \
 	$(shell cat $(BB_PATH)/busybox-$(BUSYBOX_CONFIG).sources) \
+	android/libc/mktemp.c \
 	android/libc/pty.c \
 	android/android.c
 
@@ -155,6 +156,7 @@ LOCAL_C_INCLUDES := $(bb_gen)/minimal/include $(BUSYBOX_C_INCLUDES)
 LOCAL_CFLAGS := -Dmain=busybox_driver $(BUSYBOX_CFLAGS)
 LOCAL_CFLAGS += \
   -DRECOVERY_VERSION \
+  -Dmktemp=busybox_mktemp \
   -Dgetusershell=busybox_getusershell \
   -Dsetusershell=busybox_setusershell \
   -Dendusershell=busybox_endusershell \
@@ -181,6 +183,7 @@ LOCAL_SRC_FILES += android/libc/__set_errno.c
 endif
 LOCAL_C_INCLUDES := $(bb_gen)/full/include $(BUSYBOX_C_INCLUDES)
 LOCAL_CFLAGS := $(BUSYBOX_CFLAGS)
+LOCAL_ASFLAGS := $(BUSYBOX_AFLAGS)
 LOCAL_LDFLAGS += -Wl,--no-fatal-warnings
 LOCAL_MODULE := busybox
 LOCAL_MODULE_TAGS := eng debug
@@ -220,12 +223,14 @@ LOCAL_SRC_FILES := $(BUSYBOX_SRC_FILES)
 LOCAL_C_INCLUDES := $(bb_gen)/full/include $(BUSYBOX_C_INCLUDES)
 LOCAL_CFLAGS := $(BUSYBOX_CFLAGS)
 LOCAL_CFLAGS += \
+  -Dmktemp=busybox_mktemp \
   -Dgetusershell=busybox_getusershell \
   -Dsetusershell=busybox_setusershell \
   -Dendusershell=busybox_endusershell \
   -Dgetmntent=busybox_getmntent \
   -Dgetmntent_r=busybox_getmntent_r \
   -Dgenerate_uuid=busybox_generate_uuid
+LOCAL_ASFLAGS := $(BUSYBOX_AFLAGS)
 LOCAL_LDFLAGS += -Wl,--no-fatal-warnings
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 LOCAL_MODULE := static_busybox
