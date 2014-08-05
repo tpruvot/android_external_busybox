@@ -1390,6 +1390,13 @@ int bb_xioctl(int fd, unsigned request, void *argp) FAST_FUNC;
 #define xioctl(fd,request,argp)        bb_xioctl(fd,request,argp)
 #endif
 
+#ifdef __BIONIC__
+/* only required for login.c (copied from kitkat) */
+static __inline__ int tcdrain(int fd) {
+    return ioctl(fd, TCSBRK, (void *)(intptr_t)1);
+}
+#endif
+
 char *is_in_ino_dev_hashtable(const struct stat *statbuf) FAST_FUNC;
 void add_to_ino_dev_hashtable(const struct stat *statbuf, const char *name) FAST_FUNC;
 void reset_ino_dev_hashtable(void) FAST_FUNC;

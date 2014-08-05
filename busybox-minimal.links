@@ -12,7 +12,6 @@
 /bin/cat
 /bin/catv
 /bin/chattr
-/bin/chcon
 /bin/chgrp
 /bin/chmod
 /bin/chown
@@ -50,9 +49,7 @@
 /sbin/freeramdisk
 /sbin/fstrim
 /bin/fuser
-/bin/getenforce
 /bin/getopt
-/bin/getsebool
 /bin/grep
 /bin/groups
 /bin/gunzip
@@ -78,7 +75,6 @@
 /bin/lzop
 /bin/lzopcat
 /sbin/makedevs
-/sbin/matchpathcon
 /bin/md5sum
 /bin/mkdir
 /sbin/mke2fs
@@ -111,20 +107,14 @@
 /bin/renice
 /bin/reset
 /bin/resize
-/sbin/restorecon
 /bin/rev
 /bin/rm
 /bin/rmdir
 /sbin/rmmod
 /bin/run-parts
 /bin/sed
-/sbin/selinuxenabled
 /bin/seq
-/sbin/sestatus
 /sbin/setconsole
-/sbin/setenforce
-/sbin/setfiles
-/bin/setsebool
 /bin/setserial
 /bin/setsid
 /bin/sh
