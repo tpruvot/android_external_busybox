@@ -756,7 +756,7 @@ static void start_one_job(const char *user, CronLine *line)
 	struct passwd *pas;
 	pid_t pid;
 
-	pas = getpwnam(user);
+	pas = safegetpwnam(user);
 	if (!pas) {
 		bb_error_msg("can't get uid for %s", user);
 		goto err;
