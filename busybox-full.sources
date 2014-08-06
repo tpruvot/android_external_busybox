@@ -27,6 +27,7 @@ findutils/find.c findutils/grep.c findutils/xargs.c
 
 init/halt.c init/mesg.c
 
+libbb/missing_syscalls.c
 libbb/appletlib.c libbb/ask_confirmation.c libbb/bb_askpass.c libbb/bb_do_delay.c libbb/bb_pwd.c libbb/bb_qsort.c libbb/bb_strtonum.c
 libbb/change_identity.c libbb/chomp.c libbb/compare_string_array.c libbb/concat_path_file.c libbb/concat_subpath_file.c libbb/copy_file.c libbb/copyfd.c
 libbb/crc32.c libbb/percent_decode.c libbb/default_error_retval.c libbb/device_open.c libbb/dump.c libbb/executable.c libbb/fclose_nonstdin.c
