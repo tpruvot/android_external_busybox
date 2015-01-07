@@ -115,36 +115,44 @@ extern int adjtimex (struct timex *);
  *   datapoints after the step.
  */
 
-#define RETRY_INTERVAL     5    /* on error, retry in N secs */
-#define RESPONSE_INTERVAL 15    /* wait for reply up to N secs */
 #define INITIAL_SAMPLES    4    /* how many samples do we want for init */
 #define BAD_DELAY_GROWTH   4    /* drop packet if its delay grew by more than this */
 
-/* Clock discipline parameters and constants */
+#define RETRY_INTERVAL    32    /* on send/recv error, retry in N secs (need to be power of 2) */
+#define NOREPLY_INTERVAL 512    /* sent, but got no reply: cap next query by this many seconds */
+#define RESPONSE_INTERVAL 16    /* wait for reply up to N secs */
 
 /* Step threshold (sec). std ntpd uses 0.128.
- * Using exact power of 2 (1/8) results in smaller code */
+ * Using exact power of 2 (1/8) results in smaller code
+ */
 #define STEP_THRESHOLD  0.125
-#define WATCH_THRESHOLD 128     /* stepout threshold (sec). std ntpd uses 900 (11 mins (!)) */
+/* Stepout threshold (sec). std ntpd uses 900 (11 mins (!)) */
+#define WATCH_THRESHOLD 128
 /* NB: set WATCH_THRESHOLD to ~60 when debugging to save time) */
 //UNUSED: #define PANIC_THRESHOLD 1000    /* panic threshold (sec) */
+
+/*
+ * If we got |offset| > BIGOFF from a peer, cap next query interval
+ * for this peer by this many seconds:
+ */
+#define BIGOFF          (STEP_THRESHOLD * 8)
+#define BIGOFF_INTERVAL (1 << 7) /* 128 s */
 
 #define FREQ_TOLERANCE  0.000015 /* frequency tolerance (15 PPM) */
 #define BURSTPOLL       0       /* initial poll */
 #define MINPOLL         5       /* minimum poll interval. std ntpd uses 6 (6: 64 sec) */
-/* If we got largish offset from a peer, cap next query interval
- * for this peer by this many seconds:
+/*
+ * If offset > discipline_jitter * POLLADJ_GATE, and poll interval is > 2^BIGPOLL,
+ * then it is decreased _at once_. (If <= 2^BIGPOLL, it will be decreased _eventually_).
  */
-#define BIGOFF_INTERVAL (1 << 6)
-/* If offset > discipline_jitter * POLLADJ_GATE, and poll interval is >= 2^BIGPOLL,
- * then it is decreased _at once_. (If < 2^BIGPOLL, it will be decreased _eventually_).
- */
-#define BIGPOLL         10      /* 2^10 sec ~= 17 min */
+#define BIGPOLL         9       /* 2^9 sec ~= 8.5 min */
 #define MAXPOLL         12      /* maximum poll interval (12: 1.1h, 17: 36.4h). std ntpd uses 17 */
-/* Actively lower poll when we see such big offsets.
+/*
+ * Actively lower poll when we see such big offsets.
  * With STEP_THRESHOLD = 0.125, it means we try to sync more aggressively
- * if offset increases over ~0.04 sec */
-#define POLLDOWN_OFFSET (STEP_THRESHOLD / 3)
+ * if offset increases over ~0.04 sec
+ */
+//#define POLLDOWN_OFFSET (STEP_THRESHOLD / 3)
 #define MINDISP         0.01    /* minimum dispersion (sec) */
 #define MAXDISP         16      /* maximum dispersion (sec) */
 #define MAXSTRAT        16      /* maximum stratum (infinity metric) */
@@ -978,6 +986,16 @@ step_time(double offset)
 	}
 }
 
+static void clamp_pollexp_and_set_MAXSTRAT(void)
+{
+	if (G.poll_exp < MINPOLL)
+		G.poll_exp = MINPOLL;
+	if (G.poll_exp > BIGPOLL)
+		G.poll_exp = BIGPOLL;
+	G.polladj_count = 0;
+	G.stratum = MAXSTRAT;
+}
+
 
 /*
  * Selection and clustering, and their helpers
@@ -1459,9 +1477,7 @@ update_local_clock(peer_t *p)
 			exit(0);
 		}
 
-		G.polladj_count = 0;
-		G.poll_exp = MINPOLL;
-		G.stratum = MAXSTRAT;
+		clamp_pollexp_and_set_MAXSTRAT();
 
 		run_script("step", offset);
 
@@ -1478,11 +1494,10 @@ update_local_clock(peer_t *p)
 
 	} else { /* abs_offset <= STEP_THRESHOLD */
 
-		if (G.poll_exp < MINPOLL && G.initial_poll_complete) {
-			VERB4 bb_error_msg("small offset:%+f, disabling burst mode", offset);
-			G.polladj_count = 0;
-			G.poll_exp = MINPOLL;
-		}
+		/* The ratio is calculated before jitter is updated to make
+		 * poll adjust code more sensitive to large offsets.
+		 */
+		G.offset_to_jitter_ratio = abs_offset / G.discipline_jitter;
 
 		/* Compute the clock jitter as the RMS of exponentially
 		 * weighted offset differences. Used by the poll adjust code.
@@ -1490,6 +1505,8 @@ update_local_clock(peer_t *p)
 		etemp = SQUARE(G.discipline_jitter);
 		dtemp = SQUARE(offset - G.last_update_offset);
 		G.discipline_jitter = SQRT(etemp + (dtemp - etemp) / AVG);
+		if (G.discipline_jitter < G_precision_sec)
+			G.discipline_jitter = G_precision_sec;
 
 		switch (G.discipline_state) {
 		case STATE_NSET:
@@ -1565,10 +1582,6 @@ update_local_clock(peer_t *p)
 			run_script("stratum", offset);
 		}
 	}
-
-	if (G.discipline_jitter < G_precision_sec)
-		G.discipline_jitter = G_precision_sec;
-	G.offset_to_jitter_ratio = abs_offset / G.discipline_jitter;
 
 	G.reftime = G.cur_time;
 	G.ntp_status = p->lastpkt_status;
@@ -1666,29 +1679,52 @@ update_local_clock(peer_t *p)
  * (helpers first)
  */
 static unsigned
-retry_interval(void)
-{
-	/* Local problem, want to retry soon */
-	unsigned interval, r;
-	interval = RETRY_INTERVAL;
-	r = rand();
-	interval += r % (unsigned)(RETRY_INTERVAL / 4);
-	VERB4 bb_error_msg("chose retry interval:%u", interval);
-	return interval;
-}
-static unsigned
-poll_interval(int exponent)
+poll_interval(int upper_bound)
 {
 	unsigned interval, r, mask;
-	exponent = G.poll_exp + exponent;
-	if (exponent < 0)
-		exponent = 0;
-	interval = 1 << exponent;
+	interval = 1 << G.poll_exp;
+	if (interval > (unsigned) upper_bound)
+		interval = upper_bound;
 	mask = ((interval-1) >> 4) | 1;
 	r = rand();
 	interval += r & mask; /* ~ random(0..1) * interval/16 */
-	VERB4 bb_error_msg("chose poll interval:%u (poll_exp:%d exp:%d)", interval, G.poll_exp, exponent);
+	VERB4 bb_error_msg("chose poll interval:%u (poll_exp:%d)", interval, G.poll_exp);
 	return interval;
+}
+static void
+adjust_poll(int count)
+{
+	G.polladj_count += count;
+	if (G.polladj_count > POLLADJ_LIMIT) {
+		G.polladj_count = 0;
+		if (G.poll_exp < MAXPOLL) {
+			G.poll_exp++;
+			VERB4 bb_error_msg("polladj: discipline_jitter:%f ++poll_exp=%d",
+					G.discipline_jitter, G.poll_exp);
+		}
+	} else if (G.polladj_count < -POLLADJ_LIMIT || (count < 0 && G.poll_exp > BIGPOLL)) {
+		G.polladj_count = 0;
+		if (G.poll_exp > MINPOLL) {
+			llist_t *item;
+
+			G.poll_exp--;
+			/* Correct p->next_action_time in each peer
+			 * which waits for sending, so that they send earlier.
+			 * Old pp->next_action_time are on the order
+			 * of t + (1 << old_poll_exp) + small_random,
+			 * we simply need to subtract ~half of that.
+			 */
+			for (item = G.ntp_peers; item != NULL; item = item->link) {
+				peer_t *pp = (peer_t *) item->data;
+				if (pp->p_fd < 0)
+					pp->next_action_time -= (1 << G.poll_exp);
+			}
+			VERB4 bb_error_msg("polladj: discipline_jitter:%f --poll_exp=%d",
+					G.discipline_jitter, G.poll_exp);
+		}
+	} else {
+		VERB4 bb_error_msg("polladj: count:%d", G.polladj_count);
+	}
 }
 static NOINLINE void
 recv_and_process_peer_pkt(peer_t *p)
@@ -1709,19 +1745,23 @@ recv_and_process_peer_pkt(peer_t *p)
 	 * ntp servers reply from their *other IP*.
 	 * TODO: maybe we should check at least what we can: from.port == 123?
 	 */
+ recv_again:
 	size = recv(p->p_fd, &msg, sizeof(msg), MSG_DONTWAIT);
-	if (size == -1) {
-		bb_perror_msg("recv(%s) error", p->p_dotted);
-		if (errno == EHOSTUNREACH || errno == EHOSTDOWN
-		 || errno == ENETUNREACH || errno == ENETDOWN
-		 || errno == ECONNREFUSED || errno == EADDRNOTAVAIL
-		 || errno == EAGAIN
-		) {
-//TODO: always do this?
-			interval = retry_interval();
-			goto set_next_and_ret;
-		}
-		xfunc_die();
+	if (size < 0) {
+		if (errno == EINTR)
+			/* Signal caught */
+			goto recv_again;
+		if (errno == EAGAIN)
+			/* There was no packet after all
+			 * (poll() returning POLLIN for a fd
+			 * is not a ironclad guarantee that data is there)
+			 */
+			return;
+		/*
+		 * If you need a different handling for a specific
+		 * errno, always explain it in comment.
+		 */
+		bb_perror_msg_and_die("recv(%s) error", p->p_dotted);
 	}
 
 	if (size != NTP_MSGSIZE_NOAUTH && size != NTP_MSGSIZE) {
@@ -1747,10 +1787,15 @@ recv_and_process_peer_pkt(peer_t *p)
 	 || msg.m_stratum == 0
 	 || msg.m_stratum > NTP_MAXSTRATUM
 	) {
-// TODO: stratum 0 responses may have commands in 32-bit m_refid field:
-// "DENY", "RSTR" - peer does not like us at all
-// "RATE" - peer is overloaded, reduce polling freq
 		bb_error_msg("reply from %s: peer is unsynced", p->p_dotted);
+		/*
+		 * Stratum 0 responses may have commands in 32-bit m_refid field:
+		 * "DENY", "RSTR" - peer does not like us at all,
+		 * "RATE" - peer is overloaded, reduce polling freq.
+		 * If poll interval is small, increase it.
+		 */
+		if (G.poll_exp < BIGPOLL)
+			goto increase_interval;
 		goto pick_normal_interval;
 	}
 
@@ -1839,21 +1884,36 @@ recv_and_process_peer_pkt(peer_t *p)
 	/* Muck with statictics and update the clock */
 	filter_datapoints(p);
 	q = select_and_cluster();
-	rc = -1;
+	rc = 0;
 	if (q) {
-		rc = 0;
 		if (!(option_mask32 & OPT_w)) {
 			rc = update_local_clock(q);
+#if 0
+//Disabled this because there is a case where largish offsets
+//are unavoidable: if network round-trip delay is, say, ~0.6s,
+//error in offset estimation would be ~delay/2 ~= 0.3s.
+//Thus, offsets will be usually in -0.3...0.3s range.
+//In this case, this code would keep poll interval small,
+//but it won't be helping.
+//BIGOFF check below deals with a case of seeing multi-second offsets.
+
 			/* If drift is dangerously large, immediately
 			 * drop poll interval one step down.
 			 */
 			if (fabs(q->filter_offset) >= POLLDOWN_OFFSET) {
 				VERB4 bb_error_msg("offset:%+f > POLLDOWN_OFFSET", q->filter_offset);
-				goto poll_down;
+				adjust_poll(-POLLADJ_LIMIT * 3);
+				rc = 0;
 			}
+#endif
 		}
+	} else {
+		/* No peer selected.
+		 * If poll interval is small, increase it.
+		 */
+		if (G.poll_exp < BIGPOLL)
+			goto increase_interval;
 	}
-	/* else: no peer selected, rc = -1: we want to poll more often */
 
 	if (rc != 0) {
 		/* Adjust the poll interval by comparing the current offset
@@ -1865,50 +1925,17 @@ recv_and_process_peer_pkt(peer_t *p)
 		if (rc > 0 && G.offset_to_jitter_ratio <= POLLADJ_GATE) {
 			/* was += G.poll_exp but it is a bit
 			 * too optimistic for my taste at high poll_exp's */
-			G.polladj_count += MINPOLL;
-			if (G.polladj_count > POLLADJ_LIMIT) {
-				G.polladj_count = 0;
-				if (G.poll_exp < MAXPOLL) {
-					G.poll_exp++;
-					VERB4 bb_error_msg("polladj: discipline_jitter:%f ++poll_exp=%d",
-							G.discipline_jitter, G.poll_exp);
-				}
-			} else {
-				VERB4 bb_error_msg("polladj: incr:%d", G.polladj_count);
-			}
+ increase_interval:
+			adjust_poll(MINPOLL);
 		} else {
-			G.polladj_count -= G.poll_exp * 2;
-			if (G.polladj_count < -POLLADJ_LIMIT || G.poll_exp >= BIGPOLL) {
- poll_down:
-				G.polladj_count = 0;
-				if (G.poll_exp > MINPOLL) {
-					llist_t *item;
-
-					G.poll_exp--;
-					/* Correct p->next_action_time in each peer
-					 * which waits for sending, so that they send earlier.
-					 * Old pp->next_action_time are on the order
-					 * of t + (1 << old_poll_exp) + small_random,
-					 * we simply need to subtract ~half of that.
-					 */
-					for (item = G.ntp_peers; item != NULL; item = item->link) {
-						peer_t *pp = (peer_t *) item->data;
-						if (pp->p_fd < 0)
-							pp->next_action_time -= (1 << G.poll_exp);
-					}
-					VERB4 bb_error_msg("polladj: discipline_jitter:%f --poll_exp=%d",
-							G.discipline_jitter, G.poll_exp);
-				}
-			} else {
-				VERB4 bb_error_msg("polladj: decr:%d", G.polladj_count);
-			}
+			adjust_poll(-G.poll_exp * 2);
 		}
 	}
 
 	/* Decide when to send new query for this peer */
  pick_normal_interval:
-	interval = poll_interval(0);
-	if (fabs(offset) >= STEP_THRESHOLD * 8 && interval > BIGOFF_INTERVAL) {
+	interval = poll_interval(INT_MAX);
+	if (fabs(offset) >= BIGOFF && interval > BIGOFF_INTERVAL) {
 		/* If we are synced, offsets are less than STEP_THRESHOLD,
 		 * or at the very least not much larger than it.
 		 * Now we see a largish one.
@@ -1923,7 +1950,6 @@ recv_and_process_peer_pkt(peer_t *p)
 		interval = BIGOFF_INTERVAL;
 	}
 
- set_next_and_ret:
 	set_next(p, interval);
 }
 
@@ -2094,6 +2120,7 @@ static NOINLINE void ntp_init(char **argv)
 		bb_error_msg_and_die("%s", bb_msg_you_must_be_root);
 
 	/* Set some globals */
+	G.discipline_jitter = G_precision_sec;
 	G.stratum = MAXSTRAT;
 	if (BURSTPOLL != 0)
 		G.poll_exp = BURSTPOLL; /* speeds up initial sync */
@@ -2248,6 +2275,9 @@ int ntpd_main(int argc UNUSED_PARAM, char **argv)
 				if (p->p_fd == -1) {
 					/* Time to send new req */
 					if (--cnt == 0) {
+						VERB4 bb_error_msg("disabling burst mode");
+						G.polladj_count = 0;
+						G.poll_exp = MINPOLL;
 						G.initial_poll_complete = 1;
 					}
 					send_query_to_peer(p);
@@ -2255,7 +2285,10 @@ int ntpd_main(int argc UNUSED_PARAM, char **argv)
 					/* Timed out waiting for reply */
 					close(p->p_fd);
 					p->p_fd = -1;
-					timeout = poll_interval(-2); /* -2: try a bit sooner */
+					/* If poll interval is small, increase it */
+					if (G.poll_exp < BIGPOLL)
+						adjust_poll(MINPOLL);
+					timeout = poll_interval(NOREPLY_INTERVAL);
 					bb_error_msg("timed out waiting for %s, reach 0x%02x, next query in %us",
 							p->p_dotted, p->reachable_bits, timeout);
 					set_next(p, timeout);
@@ -2346,9 +2379,7 @@ int ntpd_main(int argc UNUSED_PARAM, char **argv)
 					goto have_reachable_peer;
 			}
 			/* No peer responded for last 8 packets, panic */
-			G.polladj_count = 0;
-			G.poll_exp = MINPOLL;
-			G.stratum = MAXSTRAT;
+			clamp_pollexp_and_set_MAXSTRAT();
 			run_script("unsync", 0.0);
  have_reachable_peer: ;
 		}

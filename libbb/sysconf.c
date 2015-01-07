@@ -8,10 +8,18 @@
  */
 #include "libbb.h"
 
-#if !defined(ARG_MAX) && defined(_SC_ARG_MAX)
+#if !defined(bb_arg_max)
 unsigned FAST_FUNC bb_arg_max(void)
 {
-	return sysconf(_SC_ARG_MAX);
+	long r = sysconf(_SC_ARG_MAX);
+
+	/* I've seen a version of uclibc which returned -1.
+	 * Guard about it, and also avoid insanely large values
+	 */
+	if ((unsigned long)r > 64*1024*1024)
+		r = 64*1024*1024;
+
+	return r;
 }
 #endif
 

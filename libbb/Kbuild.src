@@ -142,6 +142,7 @@ lib-$(CONFIG_ADDUSER) += update_passwd.o
 lib-$(CONFIG_DELGROUP) += update_passwd.o
 lib-$(CONFIG_DELUSER) += update_passwd.o
 
+lib-$(CONFIG_FTPD) += correct_password.o
 lib-$(CONFIG_PASSWD) += pw_encrypt.o update_passwd.o obscure.o
 lib-$(CONFIG_CHPASSWD) += pw_encrypt.o update_passwd.o
 lib-$(CONFIG_CRYPTPW) += pw_encrypt.o
@@ -187,3 +188,6 @@ lib-$(CONFIG_PGREP) += xregcomp.o
 lib-$(CONFIG_PKILL) += xregcomp.o
 lib-$(CONFIG_DEVFSD) += xregcomp.o
 lib-$(CONFIG_FEATURE_FIND_REGEX) += xregcomp.o
+
+# Add the experimental logging functionality, only used by zcip
+lib-$(CONFIG_ZCIP) += logenv.o

@@ -143,6 +143,13 @@
 //config:	help
 //config:	  Enable support for test builtin in ash.
 //config:
+//config:config ASH_HELP
+//config:	bool "help builtin"
+//config:	default y
+//config:	depends on ASH
+//config:	help
+//config:	  Enable help builtin in ash.
+//config:
 //config:config ASH_CMDCMD
 //config:	bool "'command' command to override shell builtins"
 //config:	default y
@@ -3640,7 +3647,7 @@ getjob(const char *name, int getctl)
 
 	if (is_number(p)) {
 		num = atoi(p);
-		if (num < njobs) {
+		if (num <= njobs) {
 			jp = jobtab + num - 1;
 			if (jp->used)
 				goto gotit;
@@ -6404,7 +6411,15 @@ subevalvar(char *p, char *varname, int strloc, int subtype,
 				len = number(loc);
 			}
 		}
+		if (pos < 0) {
+			/* ${VAR:$((-n)):l} starts n chars from the end */
+			pos = orig_len + pos;
+		}
 		if (pos >= orig_len) {
+			/* apart from obvious ${VAR:999999:l},
+			 * covers ${VAR:$((-9999999)):l} - result is ""
+			 * (bash-compat)
+			 */
 			pos = 0;
 			len = 0;
 		}
@@ -8804,8 +8819,8 @@ setinteractive(int on)
 		if (!did_banner) {
 			/* note: ash and hush share this string */
 			out1fmt("\n\n%s %s\n"
-				"Enter 'help' for a list of built-in commands."
-				"\n\n",
+				IF_ASH_HELP("Enter 'help' for a list of built-in commands.\n")
+				"\n",
 				bb_banner,
 				"built-in shell (ash)"
 			);
@@ -9058,7 +9073,7 @@ static int exportcmd(int, char **) FAST_FUNC;
 #if ENABLE_ASH_GETOPTS
 static int getoptscmd(int, char **) FAST_FUNC;
 #endif
-#if !ENABLE_FEATURE_SH_EXTRA_QUIET
+#if ENABLE_ASH_HELP
 static int helpcmd(int, char **) FAST_FUNC;
 #endif
 #if MAX_HISTORY
@@ -9134,7 +9149,7 @@ static const struct builtincmd builtintab[] = {
 	{ BUILTIN_REGULAR       "getopts" , getoptscmd },
 #endif
 	{ BUILTIN_NOSPEC        "hash"    , hashcmd    },
-#if !ENABLE_FEATURE_SH_EXTRA_QUIET
+#if ENABLE_ASH_HELP
 	{ BUILTIN_NOSPEC        "help"    , helpcmd    },
 #endif
 #if MAX_HISTORY
@@ -12611,10 +12626,7 @@ trapcmd(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 
 /* ============ Builtins */
 
-#if !ENABLE_FEATURE_SH_EXTRA_QUIET
-/*
- * Lists available builtins
- */
+#if ENABLE_ASH_HELP
 static int FAST_FUNC
 helpcmd(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 {
@@ -12632,7 +12644,7 @@ helpcmd(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 			col = 0;
 		}
 	}
-#if ENABLE_FEATURE_SH_STANDALONE
+# if ENABLE_FEATURE_SH_STANDALONE
 	{
 		const char *a = applet_names;
 		while (*a) {
@@ -12644,11 +12656,11 @@ helpcmd(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 			a += strlen(a) + 1;
 		}
 	}
-#endif
+# endif
 	out1fmt("\n\n");
 	return EXIT_SUCCESS;
 }
-#endif /* FEATURE_SH_EXTRA_QUIET */
+#endif
 
 #if MAX_HISTORY
 static int FAST_FUNC
