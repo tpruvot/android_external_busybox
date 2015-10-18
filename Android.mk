@@ -1,7 +1,8 @@
 LOCAL_PATH := $(call my-dir)
 BB_PATH := $(LOCAL_PATH)
 
-# Bionic Branches Switches (GB/ICS/L)
+# Bionic Branch (GB/ICS/L/M) (Last include previous flags)
+BIONIC_M := true
 BIONIC_L := true
 
 # Make a static library for regex.
@@ -45,9 +46,7 @@ busybox_prepare_full := $(bb_gen)/full/.config
 $(busybox_prepare_full): $(BB_PATH)/busybox-full.config
 	@echo -e ${CL_YLW}"Prepare config for busybox binary"${CL_RST}
 	@rm -rf $(bb_gen)/full
-	@rm -rf $(TARGET_OUT_INTERMEDIATES)/EXECUTABLES/busybox_intermediates
-	@mkdir -p $(TARGET_OUT_INTERMEDIATES)/EXECUTABLES/busybox_intermediates
-	@touch $(TARGET_OUT_INTERMEDIATES)/EXECUTABLES/busybox_intermediates/import_includes
+	@rm -f $(shell find $(abspath $(call intermediates-dir-for,EXECUTABLES,busybox)) -name "*.o")
 	@mkdir -p $(@D)
 	@cat $^ > $@ && echo "CONFIG_CROSS_COMPILER_PREFIX=\"$(BUSYBOX_CROSS_COMPILER_PREFIX)\"" >> $@
 	+make -C $(BB_PATH) prepare O=$(@D) $(BB_PREPARE_FLAGS)
@@ -56,9 +55,7 @@ busybox_prepare_minimal := $(bb_gen)/minimal/.config
 $(busybox_prepare_minimal): $(BB_PATH)/busybox-minimal.config
 	@echo -e ${CL_YLW}"Prepare config for libbusybox"${CL_RST}
 	@rm -rf $(bb_gen)/minimal
-	@rm -rf $(TARGET_OUT_INTERMEDIATES)/STATIC_LIBRARIES/libbusybox_intermediates
-	@mkdir -p $(TARGET_OUT_INTERMEDIATES)/STATIC_LIBRARIES/libbusybox_intermediates
-	@touch $(TARGET_OUT_INTERMEDIATES)/STATIC_LIBRARIES/libbusybox_intermediates/import_includes
+	@rm -f $(shell find $(abspath $(call intermediates-dir-for,STATIC_LIBRARIES,libbusybox)) -name "*.o")
 	@mkdir -p $(@D)
 	@cat $^ > $@ && echo "CONFIG_CROSS_COMPILER_PREFIX=\"$(BUSYBOX_CROSS_COMPILER_PREFIX)\"" >> $@
 	+make -C $(BB_PATH) prepare O=$(@D) $(BB_PREPARE_FLAGS)
@@ -97,7 +94,6 @@ BUSYBOX_C_INCLUDES = \
 	bionic/libm \
 	libc/kernel/common \
 	external/libselinux/include \
-	external/selinux/libsepol/include \
 	$(BB_PATH)/android/regex \
 	$(BB_PATH)/android/librpc
 
@@ -110,6 +106,13 @@ BUSYBOX_CFLAGS = \
 	-include $(bb_gen)/$(BUSYBOX_CONFIG)/include/autoconf.h \
 	-D'CONFIG_DEFAULT_MODULES_DIR="$(KERNEL_MODULES_DIR)"' \
 	-D'BB_VER="$(strip $(shell $(SUBMAKE) kernelversion)) $(BUSYBOX_SUFFIX)"' -DBB_BT=AUTOCONF_TIMESTAMP
+
+ifeq ($(BIONIC_M),true)
+    BUSYBOX_C_INCLUDES += external/selinux/libsepol/include
+    BIONIC_L := true
+else
+    BUSYBOX_C_INCLUDES += external/libsepol/include
+endif
 
 ifeq ($(BIONIC_L),true)
     BUSYBOX_CFLAGS += -DBIONIC_L

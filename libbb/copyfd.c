@@ -34,7 +34,7 @@ static off_t bb_full_fd_action(int src_fd, int dst_fd, off_t size)
 	bool continue_on_write_error = 0;
 	ssize_t sendfile_sz;
 #if CONFIG_FEATURE_COPYBUF_KB > 4
-	char *buffer = buffer; /* for compiler */
+	static char *buffer = MAP_FAILED;
 	int buffer_size = 0;
 #else
 	char buffer[CONFIG_FEATURE_COPYBUF_KB * 1024];

@@ -105,7 +105,7 @@ static int swap_enable_disable(char *device)
 		err = stat(device, &st);
 		if (!err) {
 			if (ENABLE_DESKTOP && S_ISREG(st.st_mode)) {
-				if (st.st_blocks * (off_t)512 < (uint64_t) st.st_size) {
+				if (((size_t)512 * st.st_blocks) < (size_t)(st.st_size)) {
 					bb_error_msg("%s: file has holes", device);
 					return 1;
 				}

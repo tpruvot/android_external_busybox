@@ -294,7 +294,7 @@ static void unzip_extract(zip_header_t *zip_header, int dst_fd)
 		if (inflate_unzip(&xstate) < 0)
 			bb_error_msg_and_die("inflate error");
 		/* Validate decompression - crc */
-		if (zip_header->formatted.crc32 != (xstate.crc32 ^ 0xffffffffL)) {
+		if (zip_header->formatted.crc32 != (uint32_t) (xstate.crc32 ^ 0xffffffffUL)) {
 			bb_error_msg_and_die("crc error");
 		}
 		/* Validate decompression - size */
