@@ -15,9 +15,20 @@ archival/libarchive/init_handle.c archival/libarchive/open_transformer.c archiva
 console-tools/chvt.c console-tools/clear.c console-tools/deallocvt.c console-tools/fgconsole.c console-tools/openvt.c
 console-tools/reset.c console-tools/resize.c console-tools/setconsole.c console-tools/setkeycodes.c
 
-coreutils/basename.c coreutils/cal.c coreutils/cat.c coreutils/catv.c coreutils/chgrp.c coreutils/chmod.c coreutils/chown.c coreutils/chroot.c coreutils/cp.c coreutils/cut.c coreutils/date.c coreutils/dd.c coreutils/df.c coreutils/dirname.c coreutils/dos2unix.c coreutils/du.c coreutils/echo.c coreutils/env.c coreutils/expr.c coreutils/false.c coreutils/fold.c coreutils/head.c coreutils/id.c coreutils/install.c coreutils/ln.c coreutils/ls.c coreutils/md5_sha1_sum.c coreutils/mkdir.c coreutils/mkfifo.c coreutils/mknod.c coreutils/mv.c coreutils/nice.c coreutils/nohup.c coreutils/od.c coreutils/printenv.c coreutils/printf.c coreutils/pwd.c coreutils/readlink.c coreutils/realpath.c coreutils/rm.c coreutils/rmdir.c coreutils/seq.c coreutils/sleep.c coreutils/sort.c coreutils/split.c coreutils/stat.c coreutils/stty.c coreutils/sync.c coreutils/tac.c coreutils/tail.c coreutils/tee.c coreutils/test.c coreutils/test_ptr_hack.c coreutils/touch.c coreutils/tr.c coreutils/true.c coreutils/uname.c coreutils/uniq.c coreutils/usleep.c coreutils/uudecode.c coreutils/uuencode.c coreutils/wc.c coreutils/whoami.c coreutils/yes.c
+coreutils/basename.c coreutils/cal.c coreutils/cat.c coreutils/catv.c
+coreutils/chgrp.c coreutils/chmod.c coreutils/chown.c coreutils/chroot.c coreutils/comm.c coreutils/cp.c coreutils/cut.c
+coreutils/date.c coreutils/dd.c coreutils/df.c coreutils/dirname.c coreutils/dos2unix.c coreutils/du.c
+coreutils/echo.c coreutils/env.c coreutils/expand.c coreutils/expr.c coreutils/false.c coreutils/fold.c coreutils/fsync.c
+coreutils/head.c coreutils/id.c coreutils/install.c coreutils/ln.c coreutils/ls.c
+coreutils/md5_sha1_sum.c coreutils/mkdir.c coreutils/mkfifo.c coreutils/mknod.c coreutils/mv.c
+coreutils/nice.c coreutils/nohup.c coreutils/od.c coreutils/printenv.c coreutils/printf.c coreutils/pwd.c
+coreutils/readlink.c coreutils/realpath.c coreutils/rm.c coreutils/rmdir.c
+coreutils/seq.c coreutils/shuf.c coreutils/sleep.c coreutils/sort.c
+coreutils/split.c coreutils/stat.c coreutils/stty.c coreutils/sum.c coreutils/sync.c
+coreutils/tac.c coreutils/tail.c coreutils/tee.c coreutils/test.c coreutils/test_ptr_hack.c coreutils/touch.c
+coreutils/tr.c coreutils/true.c coreutils/uname.c coreutils/uniq.c coreutils/unlink.c
+coreutils/usleep.c coreutils/uudecode.c coreutils/uuencode.c coreutils/wc.c coreutils/whoami.c coreutils/yes.c
 coreutils/libcoreutils/cp_mv_stat.c coreutils/libcoreutils/getopt_mk_fifo_nod.c
-coreutils/comm.c coreutils/expand.c coreutils/sum.c coreutils/fsync.c
 
 debianutils/mktemp.c debianutils/run_parts.c debianutils/which.c debianutils/pipe_progress.c
 
@@ -53,7 +64,7 @@ libbb/endofname.c libbb/in_ether.c libbb/nuke_str.c
 libpwdgrp/uidgid_get.c
 
 loginutils/getty.c loginutils/login.c loginutils/su.c
-loginutils/passwd.c loginutils/chpasswd.c loginutils/cryptpw.c
+loginutils/cryptpw.c
 
 miscutils/adjtimex.c miscutils/bbconfig.c miscutils/crond.c miscutils/crontab.c miscutils/dc.c miscutils/devmem.c miscutils/less.c miscutils/man.c
 miscutils/fbsplash.c miscutils/flash_lock_unlock.c miscutils/flashcp.c miscutils/mountpoint.c miscutils/nandwrite.c

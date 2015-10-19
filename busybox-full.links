@@ -187,6 +187,7 @@
 /bin/sha512sum
 /bin/script
 /bin/scriptreplay
+/bin/shuf
 /bin/sleep
 /bin/smemcap
 /bin/sort
@@ -224,6 +225,7 @@
 /bin/unexpand
 /bin/uniq
 /bin/unix2dos
+/bin/unlink
 /bin/unlzma
 /bin/unlzop
 /bin/unxz
