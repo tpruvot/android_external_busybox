@@ -658,8 +658,8 @@ int ps_main(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 	time_t now = 0;
 	long uptime = 0;
   #else
-	time_t now = now;
-	unsigned long uptime;
+	time_t now = now; /* for compiler */
+	unsigned long uptime = uptime;
   #endif
 #endif
 	/* If we support any options, parse argv */
@@ -791,9 +791,11 @@ int ps_main(int argc UNUSED_PARAM, char **argv UNUSED_PARAM)
 
 		{
 			int sz = terminal_width - len;
-			char buf[sz + 1];
-			read_cmdline(buf, sz, p->pid, p->comm);
-			puts(buf);
+			if (sz >= 0) {
+				char buf[sz + 1];
+				read_cmdline(buf, sz, p->pid, p->comm);
+				puts(buf);
+			}
 		}
 	}
 	if (ENABLE_FEATURE_CLEAN_UP)

@@ -18,8 +18,7 @@
 //usage:     "\n	-c		Clear ring buffer after printing"
 //usage:     "\n	-n LEVEL	Set console logging level"
 //usage:     "\n	-s SIZE		Buffer size"
-//usage:	IF_FEATURE_DMESG_PRETTY(
-//usage:     "\n	-r		Show level prefix")
+//usage:     "\n	-r		Print raw message buffer"
 //usage:	IF_FEATURE_DMESG_COLOR(
 //usage:     "\n	-C		Colored output")
 

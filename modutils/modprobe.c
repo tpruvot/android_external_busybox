@@ -15,8 +15,11 @@
 #include <sys/utsname.h>
 #include <fnmatch.h>
 
-//#define DBG(fmt, ...) bb_error_msg("%s: " fmt, __func__, ## __VA_ARGS__)
+#if 1
 #define DBG(...) ((void)0)
+#else
+#define DBG(fmt, ...) bb_error_msg("%s: " fmt, __func__, ## __VA_ARGS__)
+#endif
 
 /* Note that unlike older versions of modules.dep/depmod (busybox and m-i-t),
  * we expect the full dependency list to be specified in modules.dep.
@@ -261,7 +264,7 @@ static void add_probe(const char *name)
 	llist_add_to_end(&G.probes, m);
 	G.num_unresolved_deps++;
 	if (ENABLE_FEATURE_MODUTILS_SYMBOLS
-	 && strncmp(m->modname, "symbol:", 7) == 0
+	 && is_prefixed_with(m->modname, "symbol:")
 	) {
 		G.need_symbols = 1;
 	}
@@ -349,27 +352,55 @@ static const char *humanly_readable_name(struct module_entry *m)
 	return m->probed_name ? m->probed_name : m->modname;
 }
 
+/* Like strsep(&stringp, "\n\t ") but quoted text goes to single token
+ * even if it contains whitespace.
+ */
+static char *strsep_quotes(char **stringp)
+{
+	char *s, *start = *stringp;
+
+	if (!start)
+		return NULL;
+
+	for (s = start; ; s++) {
+		switch (*s) {
+		case '"':
+			s = strchrnul(s + 1, '"'); /* find trailing quote */
+			if (*s != '\0')
+				s++; /* skip trailing quote */
+			/* fall through */
+		case '\0':
+		case '\n':
+		case '\t':
+		case ' ':
+			if (*s != '\0') {
+				*s = '\0';
+				*stringp = s + 1;
+			} else {
+				*stringp = NULL;
+			}
+			return start;
+		}
+	}
+}
+
 static char *parse_and_add_kcmdline_module_options(char *options, const char *modulename)
 {
 	char *kcmdline_buf;
 	char *kcmdline;
 	char *kptr;
-	int len;
 
 	kcmdline_buf = xmalloc_open_read_close("/proc/cmdline", NULL);
 	if (!kcmdline_buf)
 		return options;
 
 	kcmdline = kcmdline_buf;
-	len = strlen(modulename);
-	while ((kptr = strsep(&kcmdline, "\n\t ")) != NULL) {
-		if (strncmp(modulename, kptr, len) != 0)
-			continue;
-		kptr += len;
-		if (*kptr != '.')
+	while ((kptr = strsep_quotes(&kcmdline)) != NULL) {
+		char *after_modulename = is_prefixed_with(kptr, modulename);
+		if (!after_modulename || *after_modulename != '.')
 			continue;
 		/* It is "modulename.xxxx" */
-		kptr++;
+		kptr = after_modulename + 1;
 		if (strchr(kptr, '=') != NULL) {
 			/* It is "modulename.opt=[val]" */
 			options = gather_options_str(options, kptr);

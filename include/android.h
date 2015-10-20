@@ -93,6 +93,4 @@ typedef int socklen_t;
 #define wait3(status, options, rusage) wait4(-1, status, options, rusage)
 #endif
 
-extern void*  mempcpy(void* __restrict, const void* __restrict, size_t);
-
 #endif

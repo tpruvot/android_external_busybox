@@ -47,7 +47,7 @@ const char bb_PATH_root_path[] ALIGN1 =
 #endif
 
 
-const int const_int_1 = 1;
+//const int const_int_1 = 1;
 /* explicitly = 0, otherwise gcc may make it a common variable
  * and it will end up in bss */
 const int const_int_0 = 0;
