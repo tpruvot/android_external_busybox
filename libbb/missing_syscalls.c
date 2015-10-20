@@ -40,8 +40,15 @@ int pivot_root(const char *new_root, const char *put_old)
 	return syscall(__NR_pivot_root, new_root, put_old);
 }
 
+#if 0
 int tcdrain(int fd)
 {
 	return ioctl(fd, TCSBRK, 1);
+}
+#endif
+
+int syncfs(int fd)
+{
+	return syscall(__NR_syncfs, fd);
 }
 #endif

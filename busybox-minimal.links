@@ -61,6 +61,10 @@
 /bin/hexdump
 /bin/id
 /sbin/insmod
+/sbin/i2cdump
+/sbin/i2cdetect
+/sbin/i2cget
+/sbin/i2cset
 /bin/install
 /bin/kill
 /bin/killall
@@ -151,7 +155,9 @@
 /bin/touch
 /bin/tr
 /bin/true
+/bin/truncate
 /bin/ttysize
+/sbin/uevent
 /bin/umount
 /bin/uname
 /bin/unexpand

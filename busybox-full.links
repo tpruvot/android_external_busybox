@@ -91,6 +91,10 @@
 /bin/ionice
 /bin/iostat
 /sbin/ip
+/sbin/i2cdump
+/sbin/i2cdetect
+/sbin/i2cget
+/sbin/i2cset
 /bin/kill
 /bin/killall
 /sbin/killall5
@@ -217,8 +221,10 @@
 /bin/tr
 /bin/traceroute
 /bin/true
+/bin/truncate
 /bin/ttysize
 /sbin/tune2fs
+/sbin/uevent
 /bin/umount
 /bin/uname
 /bin/uncompress

@@ -348,7 +348,7 @@ static FILE *open_socket(len_and_sockaddr *lsa)
 	/* hopefully it understands what ESPIPE means... */
 	fp = fdopen(fd, "r+");
 	if (!fp)
-		bb_perror_msg_and_die(bb_msg_memory_exhausted);
+		bb_perror_msg_and_die("%s", bb_msg_memory_exhausted);
 
 	return fp;
 }

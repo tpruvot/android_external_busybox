@@ -4,6 +4,7 @@ BB_PATH := $(LOCAL_PATH)
 # Bionic Branch (GB/ICS/L/M) (Last include previous flags)
 BIONIC_M := true
 BIONIC_L := true
+#BIONIC_ICS := true
 
 # Make a static library for regex.
 include $(CLEAR_VARS)
@@ -95,12 +96,21 @@ BUSYBOX_C_INCLUDES = \
 	libc/kernel/common \
 	external/libselinux/include \
 	$(BB_PATH)/android/regex \
-	$(BB_PATH)/android/librpc
+	$(BB_PATH)/android/librpc \
+	$(BB_PATH)/android
+
+# to fit busybox android patches made for the NDK,
+# but often wrong... (syscall/libc funcs)
+NDK_API_LEVEL=21
+ifeq ($(BIONIC_ICS),true)
+    NDK_API_LEVEL=18
+endif
 
 BUSYBOX_CFLAGS = \
-	-Werror=implicit -Wno-clobbered \
+	-Werror=implicit -Wno-clobbered -Wno-pointer-sign -Wno-pointer-arith \
 	-DNDEBUG \
 	-DANDROID \
+	-D__ANDROID_API__=${NDK_API_LEVEL} \
 	-fno-strict-aliasing \
 	-fno-builtin-stpcpy \
 	-include $(bb_gen)/$(BUSYBOX_CONFIG)/include/autoconf.h \

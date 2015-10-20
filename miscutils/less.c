@@ -165,6 +165,8 @@ enum {
 enum { pattern_valid = 0 };
 #endif
 
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 struct globals {
 	int cur_fline; /* signed */
 	int kbd_fd;  /* fd to get input from */
@@ -732,7 +734,7 @@ static const char ctrlconv[] ALIGN1 =
 static void print_lineno(const char *line)
 {
 	const char *fmt = "        ";
-	unsigned n = n; /* for compiler */
+	static unsigned n;
 
 	if (line != empty_line_marker) {
 		/* Width of 7 preserves tab spacing in the text */

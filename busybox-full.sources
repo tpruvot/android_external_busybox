@@ -9,8 +9,11 @@ archival/libarchive/decompress_unxz.c archival/libarchive/decompress_gunzip.c ar
 archival/libarchive/filter_accept_all.c archival/libarchive/filter_accept_list.c archival/libarchive/filter_accept_reject_list.c
 archival/libarchive/find_list_entry.c archival/libarchive/get_header_cpio.c archival/libarchive/get_header_tar.c
 archival/libarchive/get_header_tar_bz2.c archival/libarchive/get_header_tar_gz.c archival/libarchive/get_header_tar_lzma.c
+archival/libarchive/get_header_tar_xz.c
 archival/libarchive/header_list.c archival/libarchive/header_skip.c archival/libarchive/header_verbose_list.c
-archival/libarchive/init_handle.c archival/libarchive/open_transformer.c archival/libarchive/seek_by_jump.c archival/libarchive/seek_by_read.c
+archival/libarchive/init_handle.c archival/libarchive/open_transformer.c
+archival/libarchive/seek_by_jump.c archival/libarchive/seek_by_read.c
+archival/libarchive/unsafe_prefix.c
 
 console-tools/chvt.c console-tools/clear.c console-tools/deallocvt.c console-tools/fgconsole.c console-tools/openvt.c
 console-tools/reset.c console-tools/resize.c console-tools/setconsole.c console-tools/setkeycodes.c
@@ -26,7 +29,8 @@ coreutils/readlink.c coreutils/realpath.c coreutils/rm.c coreutils/rmdir.c
 coreutils/seq.c coreutils/shuf.c coreutils/sleep.c coreutils/sort.c
 coreutils/split.c coreutils/stat.c coreutils/stty.c coreutils/sum.c coreutils/sync.c
 coreutils/tac.c coreutils/tail.c coreutils/tee.c coreutils/test.c coreutils/test_ptr_hack.c coreutils/touch.c
-coreutils/tr.c coreutils/true.c coreutils/uname.c coreutils/uniq.c coreutils/unlink.c
+coreutils/tr.c coreutils/true.c coreutils/truncate.c
+coreutils/uname.c coreutils/uniq.c coreutils/unlink.c
 coreutils/usleep.c coreutils/uudecode.c coreutils/uuencode.c coreutils/wc.c coreutils/whoami.c coreutils/yes.c
 coreutils/libcoreutils/cp_mv_stat.c coreutils/libcoreutils/getopt_mk_fifo_nod.c
 
@@ -40,7 +44,8 @@ findutils/find.c findutils/grep.c findutils/xargs.c
 init/halt.c init/mesg.c
 
 libbb/missing_syscalls.c
-libbb/appletlib.c libbb/ask_confirmation.c libbb/bb_askpass.c libbb/bb_do_delay.c libbb/bb_pwd.c libbb/bb_qsort.c libbb/bb_strtonum.c
+libbb/appletlib.c libbb/ask_confirmation.c libbb/bb_askpass.c libbb/auto_string.c
+libbb/bb_do_delay.c libbb/bb_pwd.c libbb/bb_qsort.c libbb/bb_strtonum.c
 libbb/change_identity.c libbb/chomp.c libbb/compare_string_array.c libbb/concat_path_file.c libbb/concat_subpath_file.c libbb/copy_file.c libbb/copyfd.c
 libbb/crc32.c libbb/percent_decode.c libbb/default_error_retval.c libbb/device_open.c libbb/dump.c libbb/executable.c libbb/fclose_nonstdin.c
 libbb/fflush_stdout_and_exit.c libbb/fgets_str.c libbb/find_mount_point.c libbb/find_pid_by_name.c libbb/find_root_device.c libbb/full_write.c
@@ -69,7 +74,7 @@ loginutils/cryptpw.c
 miscutils/adjtimex.c miscutils/bbconfig.c miscutils/crond.c miscutils/crontab.c miscutils/dc.c miscutils/devmem.c miscutils/less.c miscutils/man.c
 miscutils/fbsplash.c miscutils/flash_lock_unlock.c miscutils/flashcp.c miscutils/mountpoint.c miscutils/nandwrite.c
 miscutils/rx.c miscutils/setserial.c miscutils/setsid.c miscutils/strings.c miscutils/taskset.c miscutils/time.c miscutils/timeout.c miscutils/ttysize.c
-miscutils/ionice.c
+miscutils/ionice.c miscutils/i2c_tools.c
 
 modutils/modinfo.c modutils/modprobe-small.c modutils/modutils.c
 modutils/lsmod.c modutils/depmod.c modutils/rmmod.c modutils/insmod.c
@@ -101,7 +106,7 @@ util-linux/mkfs_ext2.c util-linux/mkfs_vfat.c util-linux/mkswap.c
 util-linux/more.c util-linux/mount.c util-linux/rdate.c util-linux/rdev.c util-linux/rev.c
 util-linux/script.c util-linux/scriptreplay.c
 util-linux/swaponoff.c util-linux/switch_root.c util-linux/umount.c util-linux/fatattr.c
-
+util-linux/uevent.c
 util-linux/volume_id/get_devname.c util-linux/volume_id/volume_id.c util-linux/volume_id/util.c util-linux/volume_id/ext.c
 util-linux/volume_id/fat.c util-linux/volume_id/iso9660.c util-linux/volume_id/ntfs.c util-linux/volume_id/linux_swap.c
 util-linux/volume_id/exfat.c util-linux/volume_id/squashfs.c util-linux/volume_id/f2fs.c

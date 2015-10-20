@@ -96,7 +96,7 @@ aa:      85.1% -- replaced with aa.gz
 
 #include "libbb.h"
 #include "bb_archive.h"
-
+#include <strings.h> // ffs()
 
 /* ===========================================================================
  */
@@ -748,7 +748,7 @@ static int longest_match(IPos cur_match)
 		if (len > best_len) {
 			G1.match_start = cur_match;
 			best_len = len;
-			if (len >= nice_match)
+			if (len >= (int) nice_match)
 				break;
 			scan_end1 = scan[best_len - 1];
 			scan_end = scan[best_len];

@@ -486,7 +486,7 @@ typedef unsigned smalluint;
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
-# if __ANDROID_API__ < 8
+# if __ANDROID_API__ < 8 || !defined(__arm__)
 #  undef HAVE_DPRINTF
 # else
 #  define dprintf fdprintf
@@ -494,15 +494,18 @@ typedef unsigned smalluint;
 # if __ANDROID_API__ < 21
 #  undef HAVE_TTYNAME_R
 #  undef HAVE_GETLINE
+#  undef HAVE_MEMPCPY
 #  undef HAVE_STPCPY
 # endif
-# undef HAVE_MEMPCPY
 # undef HAVE_STRCHRNUL
 # undef HAVE_STRVERSCMP
 # undef HAVE_UNLOCKED_LINE_OPS
 # undef HAVE_NET_ETHERNET_H
 # ifndef BIONIC_L
 #  undef HAVE_STPCPY
+# endif
+# if defined(BIONIC_ICS) && !defined(HAVE_TTYNAME_R) /* aosp build, not ndk */
+#  define HAVE_TTYNAME_R 1
 # endif
 #endif
 

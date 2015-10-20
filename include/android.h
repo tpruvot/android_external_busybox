@@ -37,6 +37,7 @@ int    stime(const time_t *);
 int    swapon(const char *, int);
 int    swapoff(const char *);
 int    getsid(pid_t);
+int    syncfs(int fd);
 
 #ifndef SYS_ioprio_set
 #define SYS_ioprio_set __NR_ioprio_set
