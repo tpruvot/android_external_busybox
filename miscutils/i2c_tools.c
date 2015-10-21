@@ -760,18 +760,20 @@ static void dump_data(int bus_fd, int mode, unsigned first,
 	     "    0123456789abcdef");
 
 	for (i = 0; i < I2CDUMP_NUM_REGS; i += 0x10) {
+		const unsigned u = i;
 		if (mode == I2C_SMBUS_BLOCK_DATA && i >= blen)
 			break;
-		if (i/16 < first/16)
+		if (u/16 < first/16)
 			continue;
-		if (i/16 > last/16)
+		if (u/16 > last/16)
 			break;
 
 		printf("%02x: ", i);
 		for (j = 0; j < 16; j++) {
+			const unsigned k = i + j;
 			fflush_all();
 			/* Skip unwanted registers */
-			if (i+j < first || i+j > last) {
+			if (k < first || k > last) {
 				printf("   ");
 				if (mode == I2C_SMBUS_WORD_DATA) {
 					printf("   ");
@@ -822,10 +824,11 @@ static void dump_data(int bus_fd, int mode, unsigned first,
 		printf("   ");
 
 		for (j = 0; j < 16; j++) {
+			const unsigned k = i + j;
 			if (mode == I2C_SMBUS_BLOCK_DATA && i+j >= blen)
 				break;
 			/* Skip unwanted registers */
-			if (i+j < first || i+j > last) {
+			if (k < first || k > last) {
 				bb_putchar(' ');
 				continue;
 			}
@@ -852,15 +855,17 @@ static void dump_word_data(int bus_fd, unsigned first, unsigned last)
 	/* Word data. */
 	puts("     0,8  1,9  2,a  3,b  4,c  5,d  6,e  7,f");
 	for (i = 0; i < 256; i += 8) {
-		if (i/8 < first/8)
+		const unsigned u = i;
+		if (u/8 < first/8)
 			continue;
-		if (i/8 > last/8)
+		if (u/8 > last/8)
 			break;
 
 		printf("%02x: ", i);
 		for (j = 0; j < 8; j++) {
+			const unsigned k = i + j;
 			/* Skip unwanted registers. */
-			if (i+j < first || i+j > last) {
+			if (k < first || k > last) {
 				printf("     ");
 				continue;
 			}
@@ -1271,6 +1276,7 @@ int i2cdetect_main(int argc UNUSED_PARAM, char **argv)
 	for (i = 0; i < 128; i += 16) {
 		printf("%02x: ", i);
 		for(j = 0; j < 16; j++) {
+			const unsigned k = i + j;
 			fflush_all();
 
 			if (mode == I2CDETECT_MODE_AUTO) {
@@ -1282,8 +1288,8 @@ int i2cdetect_main(int argc UNUSED_PARAM, char **argv)
 			}
 
 			/* Skip unwanted addresses. */
-			if (i+j < first
-			 || i+j > last
+			if (k < first
+			 || k > last
 			 || (mode == I2CDETECT_MODE_READ && !(funcs & I2C_FUNC_SMBUS_READ_BYTE))
 			 || (mode == I2CDETECT_MODE_QUICK && !(funcs & I2C_FUNC_SMBUS_QUICK)))
 			{
