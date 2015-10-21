@@ -504,6 +504,9 @@ typedef unsigned smalluint;
 # ifndef BIONIC_L
 #  undef HAVE_STPCPY
 # endif
+# ifndef BIONIC_M
+#  undef HAVE_MEMPCPY
+# endif
 # if defined(BIONIC_ICS) && !defined(HAVE_TTYNAME_R) /* aosp build, not ndk */
 #  define HAVE_TTYNAME_R 1
 # endif
@@ -552,7 +555,7 @@ extern char *stpcpy(char *p, const char *to_add) FAST_FUNC;
 #define mempcpy bb__mempcpy
 static ALWAYS_INLINE void *mempcpy(void *dest, const void *src, size_t len)
 {
-	return memcpy(dest, src, len) + len;
+	return (char*) memcpy(dest, src, len) + len;
 }
 #else
 extern void* mempcpy(void* __restrict, const void* __restrict, size_t len);

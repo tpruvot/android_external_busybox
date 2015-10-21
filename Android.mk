@@ -102,15 +102,18 @@ BUSYBOX_C_INCLUDES = \
 # to fit busybox android patches made for the NDK,
 # but often wrong... (syscall/libc funcs)
 NDK_API_LEVEL=21
+ifneq ($(BIONIC_M),true)
+    NDK_API_LEVEL=19
+endif
 ifeq ($(BIONIC_ICS),true)
     NDK_API_LEVEL=18
 endif
 
 BUSYBOX_CFLAGS = \
-	-Werror=implicit -Wno-clobbered -Wno-pointer-sign -Wno-pointer-arith \
+	-Werror=implicit -Wno-clobbered -Wno-pointer-sign \
 	-DNDEBUG \
 	-DANDROID \
-	-D__ANDROID_API__=${NDK_API_LEVEL} \
+	-D__ANDROID_API__=$(NDK_API_LEVEL) \
 	-fno-strict-aliasing \
 	-fno-builtin-stpcpy \
 	-include $(bb_gen)/$(BUSYBOX_CONFIG)/include/autoconf.h \
@@ -118,6 +121,7 @@ BUSYBOX_CFLAGS = \
 	-D'BB_VER="$(strip $(shell $(SUBMAKE) kernelversion)) $(BUSYBOX_SUFFIX)"' -DBB_BT=AUTOCONF_TIMESTAMP
 
 ifeq ($(BIONIC_M),true)
+    BUSYBOX_CFLAGS += -DBIONIC_M
     BUSYBOX_C_INCLUDES += external/selinux/libsepol/include
     BIONIC_L := true
 else
